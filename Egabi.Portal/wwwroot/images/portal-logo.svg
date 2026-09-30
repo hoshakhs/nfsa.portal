@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Portal emblem">
+  <!-- Neutral fallback emblem (leaf + check). Shown only until the official logo is chosen in the CMS: Home → Site settings → Logo. -->
+  <circle cx="32" cy="32" r="30" fill="#00743e"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#b8923a" stroke-width="2"/>
+  <path d="M20 40c0-13 9-21 25-23-1 15-8 25-21 25-1.5 0-2.9-.6-4-2z" fill="#ffffff"/>
+  <path d="M26 34l5 5 9-11" fill="none" stroke="#00743e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
