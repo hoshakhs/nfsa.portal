@@ -15,7 +15,7 @@
 
 <div class="gp-screen">
 <div class="gp-phead">
-<div><h1>@L("Register a healthcare facility", "تسجيل منشأة صحية")</h1><p>@L("Step 1 of 3: facility details. Next you'll upload the documents, then submit for approval.", "الخطوة 1 من 3: بيانات المنشأة. بعدها ترفع المستندات ثم تقدم الطلب للاعتماد.")</p></div>
+<div><h1>@L("Register a food establishment", "تسجيل منشأة غذائية")</h1><p>@L("Step 1 of 3: establishment details. Next you'll upload the documents, then submit for review.", "الخطوة 1 من 3: بيانات المنشأة. بعدها ترفع المستندات ثم تقدم الطلب للمراجعة.")</p></div>
 </div>
 
 <form class="gp-panel" data-api="/portal/api/facilities" data-form-config="facility-form-config" novalidate>
@@ -24,12 +24,12 @@
 
 <h2 class="gp-h3">@L("Basic information", "البيانات الأساسية")</h2>
 <div class="gp-form-grid" data-section="Basic">
-<div class="gp-field" data-field="FacilityName"><label for="f-name">@L("Facility name (English)", "اسم المنشأة (بالإنجليزية)") <span class="gp-req">*</span></label><input id="f-name" name="facilityName" type="text" maxlength="300" dir="ltr" required /><small class="gp-field-error" data-error-for="facilityName"></small></div>
-<div class="gp-field" data-field="FacilityNameLocal"><label for="f-name-ar">@L("Facility name (Arabic)", "اسم المنشأة (بالعربية)")</label><input id="f-name-ar" name="facilityNameLocal" type="text" maxlength="300" dir="rtl" /><small class="gp-field-error" data-error-for="facilityNameLocal"></small></div>
+<div class="gp-field" data-field="FacilityName"><label for="f-name">@L("Establishment name (English)", "اسم المنشأة (بالإنجليزية)") <span class="gp-req">*</span></label><input id="f-name" name="facilityName" type="text" maxlength="300" dir="ltr" required /><small class="gp-field-error" data-error-for="facilityName"></small></div>
+<div class="gp-field" data-field="FacilityNameLocal"><label for="f-name-ar">@L("Establishment name (Arabic)", "اسم المنشأة (بالعربية)")</label><input id="f-name-ar" name="facilityNameLocal" type="text" maxlength="300" dir="rtl" /><small class="gp-field-error" data-error-for="facilityNameLocal"></small></div>
 <div class="gp-field" data-field="TradeName"><label for="f-trade">@L("Trade name", "الاسم التجاري")</label><input id="f-trade" name="tradeName" type="text" maxlength="300" /><small class="gp-field-error" data-error-for="tradeName"></small></div>
 <div class="gp-field" data-field="LegalEntityName"><label for="f-legal-name">@L("Legal entity name", "اسم الكيان القانوني")</label><input id="f-legal-name" name="legalEntityName" type="text" maxlength="300" /><small class="gp-field-error" data-error-for="legalEntityName"></small></div>
 <div class="gp-field" data-field="SectorID"><label for="f-sector">@L("Sector", "القطاع") <span class="gp-req">*</span></label><select id="f-sector" name="sectorID" data-type="int" data-lookup="sectors" required><option value="">@choose</option></select><small class="gp-field-error" data-error-for="sectorID"></small></div>
-<div class="gp-field" data-field="FacilityTypeID"><label for="f-type">@L("Facility type", "نوع المنشأة") <span class="gp-req">*</span></label><select id="f-type" name="facilityTypeID" data-type="int" data-lookup="facility-types" data-depends="sectorID" data-param="sectorId" required><option value="">@choose</option></select><small class="gp-field-error" data-error-for="facilityTypeID"></small></div>
+<div class="gp-field" data-field="FacilityTypeID"><label for="f-type">@L("Establishment type", "نوع المنشأة") <span class="gp-req">*</span></label><select id="f-type" name="facilityTypeID" data-type="int" data-lookup="facility-types" data-depends="sectorID" data-param="sectorId" required><option value="">@choose</option></select><small class="gp-field-error" data-error-for="facilityTypeID"></small></div>
 </div>
 <label class="gp-check" data-field="IsHeadOffice"><input name="isHeadOffice" type="checkbox" data-type="bool" /><span>@L("This is the head office", "هذا هو المقر الرئيسي")</span></label>
 

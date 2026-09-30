@@ -28,10 +28,10 @@
 
 <div class="gp-screen">
 <div class="gp-phead">
-<div><h1>@L("My applications", "طلباتي")</h1><p>@L("Your service requests and facility registrations, and where each one stands.", "طلبات الخدمات وطلبات تسجيل المنشآت، وحالة كل منها.")</p></div>
+<div><h1>@L("My applications", "طلباتي")</h1><p>@L("Your service requests and establishment registrations, and where each one stands.", "طلبات الخدمات وطلبات تسجيل المنشآت، وحالة كل منها.")</p></div>
 <div class="gp-form-actions">
 <a class="gp-btn gp-btn--primary" href="@U("/account/new-request")"><i class="bi bi-plus-lg"></i><span>@L("New service request", "طلب خدمة جديد")</span></a>
-<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register an establishment", "تسجيل منشأة")</span></a>
 </div>
 </div>
 
@@ -55,7 +55,7 @@
     <h2 class="gp-h3">@L("Service requests", "طلبات الخدمات")</h2>
     @if (requests.Any(x => x.Status == "ActionRequired"))
     {
-        <div class="gp-next gp-next--gold"><i class="bi bi-exclamation-circle"></i><div>@L("GAHAR returned a request to you for correction. Open it, correct it and resubmit.", "أعادت الهيئة إليك طلبًا لاستكماله. افتحه وعدّله ثم أعد تقديمه.")</div></div>
+        <div class="gp-next gp-next--gold"><i class="bi bi-exclamation-circle"></i><div>@L("NFSA returned a request to you for correction. Open it, correct it and resubmit.", "أعادت الهيئة إليك طلبًا لاستكماله. افتحه وعدّله ثم أعد تقديمه.")</div></div>
     }
     <div class="gp-panel gp-panel--flush">
         @if (requests.Count == 0)
@@ -66,7 +66,7 @@ else
 {
     <div class="gp-table-wrap">
     <table class="gp-table">
-    <thead><tr><th>@L("Reference", "رقم الطلب")</th><th>@L("Service", "الخدمة")</th><th>@L("Facility", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th><th>@L("Current step", "المرحلة الحالية")</th></tr></thead>
+    <thead><tr><th>@L("Reference", "رقم الطلب")</th><th>@L("Service", "الخدمة")</th><th>@L("Establishment", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th><th>@L("Current step", "المرحلة الحالية")</th></tr></thead>
     <tbody>
     @foreach (var r in requests)
     {
@@ -96,7 +96,7 @@ else
 </div>
 
 @* ── Facility registrations ── *@
-<h2 class="gp-h3">@L("Facility registrations", "تسجيل المنشآت")</h2>
+<h2 class="gp-h3">@L("Establishment registrations", "تسجيل المنشآت")</h2>
 <div class="gp-filterbar" data-rowfilter="gp-apps-table">
 <button class="gp-seg gp-is-on" data-filter="all" type="button">@L("All", "الكل")</button>
 <button class="gp-seg" data-filter="progress" type="button">@L("Under review", "قيد المراجعة")</button>
@@ -108,19 +108,19 @@ else
 <div class="gp-panel gp-panel--flush">
 @if (list.Count == 0)
 {
-    <p class="gp-pad gp-muted">@L("No facility registrations yet.", "لا توجد طلبات تسجيل منشآت بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first facility", "سجّل منشأتك الأولى")</a></p>
+    <p class="gp-pad gp-muted">@L("No establishment registrations yet.", "لا توجد طلبات تسجيل منشآت بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first establishment", "سجّل منشأتك الأولى")</a></p>
 }
 else
 {
     <div class="gp-table-wrap">
     <table class="gp-table gp-table--click" id="gp-apps-table">
-    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Service", "الخدمة")</th><th>@L("Facility", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th></tr></thead>
+    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Service", "الخدمة")</th><th>@L("Establishment", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th></tr></thead>
     <tbody>
     @foreach (var f in list)
     {
         <tr data-href="@U("/account/facility")?id=@f.Id" data-status="@Filter(f.ApprovalStatus)">
         <td class="gp-ref">@ApplicantUi.Reference(f.Id)</td>
-        <td>@L("Facility registration", "تسجيل منشأة")</td>
+        <td>@L("Establishment registration", "تسجيل منشأة")</td>
         <td>@Name(f)</td>
         <td>@ApplicantUi.Date(f.SubmittedAt, isAr)</td>
         <td><span class="@ApplicantUi.StatusPill(f.ApprovalStatus)">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span></td>
