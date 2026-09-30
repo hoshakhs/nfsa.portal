@@ -1,4 +1,4 @@
-/* GAHAR portal — shared page behaviour (Egabi.Portal/wwwroot/js/gahar-site.js).
+/* Public portal — shared page behaviour (Egabi.Portal/wwwroot/js/portal-site.js).
    State is expressed with classes only (no inline styles). */
 (function () {
     'use strict';
