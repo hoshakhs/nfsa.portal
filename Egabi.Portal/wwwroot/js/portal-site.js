@@ -149,6 +149,7 @@
         var f = e.target;
         if (!f.closest('.gp-screen')) { return; }      // public forms (search, track on home) submit normally
         if (f.hasAttribute('data-api')) { return; }    // real forms are handled by portal-api.js
+        if (f.hasAttribute('data-native')) { return; } // real forms that submit normally (e.g. Track a request)
         e.preventDefault();
         toast(f);
         var next = f.getAttribute('data-next');

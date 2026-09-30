@@ -219,7 +219,7 @@ namespace Egabi.Portal.Controllers
             return Json(new
             {
                 ok = true,
-                message = Ar ? "تم تقديم المنشأة للاعتماد." : "Facility submitted for approval.",
+                message = Ar ? "تم تقديم المنشأة للمراجعة." : "Establishment submitted for review.",
                 redirect = U("/account/facility") + "?id=" + id
             });
         }

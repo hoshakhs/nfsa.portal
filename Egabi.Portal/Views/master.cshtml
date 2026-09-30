@@ -96,7 +96,6 @@
             <div class="gp-header-actions">
                 @if (isApplicant)
                 {
-                    <a href="@U("/account/notifications")" class="gp-bell" aria-label="@(isAr ? "الإشعارات" : "Notifications")"><i class="bi bi-bell"></i></a>
                     <div class="gp-user">
                         <button type="button" class="gp-user-btn" data-action="usermenu">
                             <span class="gp-avatar">@applicant!.Initials</span>
@@ -105,8 +104,8 @@
                         </button>
                         <div class="gp-usermenu">
                             <a href="@U("/account")"><i class="bi bi-grid"></i><span>@(isAr ? "لوحة المتابعة" : "My dashboard")</span></a>
-                            <a href="@U("/account/profile")"><i class="bi bi-person"></i><span>@(isAr ? "ملفي الشخصي" : "My profile")</span></a>
-                            <a href="@U("/account/messages")"><i class="bi bi-chat-left-text"></i><span>@(isAr ? "الرسائل" : "Messages")</span></a>
+                            <a href="@U("/account/applications")"><i class="bi bi-list-check"></i><span>@(isAr ? "طلباتي" : "My applications")</span></a>
+                            <a href="@U("/account/facility")"><i class="bi bi-building"></i><span>@(isAr ? "منشآتي" : "My establishments")</span></a>
                             <form method="post" action="/portal/account/logout" class="gp-usermenu-form">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="lang" value="@(isAr ? "ar" : "en")" />

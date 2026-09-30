@@ -1,43 +1,168 @@
 @using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
 @{
-    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    // Track a request — real data from the egabi Platform API (NFSA Patch N2b; replaces the prototype sample).
+    //   /track?reference=SRV-2026-000123 → one of my service requests
+    //   /track?reference=FAC-000045      → one of my establishment registrations (its review stages)
+    //   /track                           → my requests and establishments, each with a "Track" link
+    // Only the signed-in applicant's own records are found (the API checks ownership).
+    // The consignment timeline (stage history) comes with Patch N6.
     var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
     string L(string en, string ar) => isAr ? ar : en;
     string U(string path) => (isAr ? "" : "/en") + path;
+    string Or(string? v) => string.IsNullOrWhiteSpace(v) ? "—" : v!;
+
+    var me = ApplicantAuth.Current(Context)!;
+    var reference = (Context.Request.Query["reference"].FirstOrDefault() ?? Context.Request.Query["ref"].FirstOrDefault() ?? "").Trim().ToUpperInvariant();
+
+    ApiResult<FacilityDetails>? facility = null;
+    ApiResult<ServiceRequestDetails>? request = null;
+    ApiResult<List<ServiceRequestItem>>? myRequests = null;
+    ApiResult<List<FacilitySummary>>? myFacilities = null;
+
+    if (reference.StartsWith("FAC-") && int.TryParse(reference.Substring(4), out var facilityId) && facilityId > 0)
+    {
+        facility = await Api.GetFacilityAsync(me.Token, facilityId);
+    }
+    else if (reference.Length > 0)
+    {
+        request = await Api.GetMyServiceRequestAsync(me.Token, reference);
+    }
+    else
+    {
+        myRequests = await Api.GetMyServiceRequestsAsync(me.Token);
+        myFacilities = await Api.GetMyFacilitiesAsync(me.Token);
+    }
+
+    var unauthorized = facility?.Unauthorized == true || request?.Unauthorized == true
+                       || myRequests?.Unauthorized == true || myFacilities?.Unauthorized == true;
+    var notFound = reference.Length > 0 && (facility?.Data == null && request?.Data == null);
 }
 
 <div class="gp-screen">
-<div class="gp-phead"><div><h1>@L("Track a request", "تتبع طلب")</h1><p>@L("Enter a reference number to see its current stage and what happens next.", "أدخل رقم الطلب لمعرفة مرحلته الحالية والخطوة التالية.")</p></div></div>
-<form class="gp-trackbar" data-next="@U("/track")" data-track="">
-<div class="gp-inputicon"><i class="bi bi-hash"></i><input aria-label="Reference number" type="text" value="GHR-2026-004182"/></div>
+<div class="gp-phead"><div><h1>@L("Track a request", "تتبع طلب")</h1><p>@L("Enter a reference number to see its current stage and what happens next.", "أدخل الرقم المرجعي لمعرفة المرحلة الحالية والخطوة التالية.")</p></div></div>
+
+<form class="gp-trackbar" method="get" action="@U("/track")" data-native>
+<div class="gp-inputicon"><i class="bi bi-hash"></i><input name="reference" type="text" value="@reference" placeholder="SRV-2026-000123 / FAC-000045" aria-label="@L("Reference number", "الرقم المرجعي")" required /></div>
 <button class="gp-btn gp-btn--primary" type="submit">@L("Track", "تتبع")</button>
 </form>
-<div class="gp-panel gp-track-result" id="gp-track-result">
-<div class="gp-track-head">
-<div>
-<span class="gp-ref">GHR-2026-004182</span>
-<h2>@L("Healthcare facility accreditation — Nile Valley Specialized Hospital", "اعتماد المنشآت الصحية — مستشفى وادي النيل التخصصي")</h2>
-</div>
-<span class="gp-pill gp-pill--info">@L("Visit scheduled", "زيارة مجدولة")</span>
-</div>
-<ol class="gp-progress">
-<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Submitted", "تم التقديم")</em><small>@L("02 Sep", "02 سبتمبر")</small></li>
-<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Document review", "مراجعة المستندات")</em><small>@L("11 Sep", "11 سبتمبر")</small></li>
-<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Fee paid", "سداد الرسوم")</em><small>@L("14 Sep", "14 سبتمبر")</small></li>
-<li class="gp-is-current"><span>4</span><em>@L("Survey visit", "زيارة التقييم")</em><small>@L("12 – 13 Oct", "12 – 13 أكتوبر")</small></li>
-<li><span>5</span><em>@L("Decision", "القرار")</em><small>@L("Expected Nov", "متوقع نوفمبر")</small></li>
-</ol>
-<div class="gp-next">
-<i class="bi bi-info-circle"></i>
-<p>@L("Next: the surveyor team visits the facility on 12 and 13 October. Please have policy files and training records ready.", "الخطوة التالية: يزور فريق التقييم المنشأة يومي 12 و13 أكتوبر. يرجى تجهيز ملفات السياسات وسجلات التدريب.")</p>
-</div>
-<h3 class="gp-h3">@L("Request history", "سجل الطلب")</h3>
-<ul class="gp-timeline">
-<li><time>@L("18 Sep 2026, 10:24 am", "18 سبتمبر 2026، 10:24 ص")</time><p>@L("Survey visit scheduled and team lead assigned.", "تم تحديد موعد زيارة التقييم وتعيين رئيس الفريق.")</p></li>
-<li><time>@L("14 Sep 2026, 3:10 pm", "14 سبتمبر 2026، 3:10 م")</time><p>@L("Fee payment received — receipt RCP-2026-11820.", "تم استلام سداد الرسوم — إيصال RCP-2026-11820.")</p></li>
-<li><time>@L("11 Sep 2026, 12:02 pm", "11 سبتمبر 2026، 12:02 م")</time><p>@L("Documents accepted.", "تم قبول المستندات.")</p></li>
-<li><time>@L("02 Sep 2026, 9:15 am", "02 سبتمبر 2026، 9:15 ص")</time><p>@L("Request submitted.", "تم تقديم الطلب.")</p></li>
-</ul>
-</div>
+
+@if (unauthorized)
+{
+    await ApplicantAuth.SignOutAsync(Context);
+    <div class="gp-form-error">@L("Your session has ended.", "انتهت الجلسة.") <a class="gp-textlink" href="@U("/account/login")">@L("Sign in again", "سجّل الدخول مرة أخرى")</a></div>
+}
+else if (notFound)
+{
+    <div class="gp-form-error">@L("No request with this reference was found in your account. Check the number in your confirmation message.", "لم يتم العثور على طلب بهذا الرقم في حسابك. تحقق من الرقم في رسالة التأكيد.")</div>
+}
+
+@if (request?.Data is { } r)
+{
+    var done = r.Status is "Completed" or "Rejected" or "Cancelled";
+    <div class="gp-panel gp-track-result">
+    <div class="gp-track-head">
+    <div>
+    <span class="gp-ref">@r.Reference</span>
+    <h2>@(isAr ? r.ServiceNameAr : r.ServiceNameEn) — @((isAr && !string.IsNullOrWhiteSpace(r.FacilityNameLocal) ? r.FacilityNameLocal : r.FacilityName) ?? "—")</h2>
+    </div>
+    <span class="@ApplicantUi.RequestStatusPill(r.Status)">@ApplicantUi.RequestStatusLabel(r.Status, isAr)</span>
+    </div>
+    <ol class="gp-progress gp-progress--auto">
+    <li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Submitted", "تم التقديم")</em><small>@ApplicantUi.Date(r.SubmittedAt, isAr)</small></li>
+    <li class="@(done ? "gp-is-done" : "gp-is-current")"><span>@(done ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("2"))</span><em>@L("Review", "المراجعة")</em><small>@(done ? "" : Or(r.CurrentStage))</small></li>
+    <li class="@(done ? "gp-is-done" : "")"><span>@(done ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("3"))</span><em>@L("Decision", "القرار")</em><small>@(done ? ApplicantUi.RequestStatusLabel(r.Status, isAr) : L("Waiting", "في الانتظار"))</small></li>
+    </ol>
+    @if (r.Status == "ActionRequired")
+    {
+        <div class="gp-next gp-next--gold"><i class="bi bi-exclamation-circle"></i><div>
+        @L("NFSA returned this request for correction.", "أعادت الهيئة هذا الطلب لاستكماله.") @if (!string.IsNullOrWhiteSpace(r.ReturnNote)) {<strong>@r.ReturnNote</strong>}
+        <a class="gp-textlink" href="@U("/account/new-request")?ref=@Uri.EscapeDataString(r.Reference)">@L("Correct and resubmit", "تعديل وإعادة التقديم")</a>
+        </div></div>
+    }
+    else if (!done)
+    {
+        <div class="gp-next"><i class="bi bi-info-circle"></i><p>@L("Your request is being reviewed. You'll be notified when it moves to the next step.", "طلبك قيد المراجعة. سيصلك إشعار عند انتقاله إلى الخطوة التالية.")</p></div>
+    }
+    </div>
+}
+
+@if (facility?.Data is { } f)
+{
+    var submitted = f.SubmittedAt.HasValue;
+    <div class="gp-panel gp-track-result">
+    <div class="gp-track-head">
+    <div>
+    <span class="gp-ref">@ApplicantUi.Reference(f.Id)</span>
+    <h2>@L("Establishment registration", "تسجيل منشأة") — @((isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—")</h2>
+    </div>
+    <span class="@ApplicantUi.StatusPill(f.ApprovalStatus)">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span>
+    </div>
+    <ol class="gp-progress gp-progress--auto">
+    <li class="@(submitted ? "gp-is-done" : "gp-is-current")"><span>@(submitted ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("1"))</span><em>@L("Submitted", "تقديم الطلب")</em><small>@ApplicantUi.Date(f.SubmittedAt, isAr)</small></li>
+    @foreach (var s in f.Stages)
+    {
+        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" => "gp-is-rejected", _ => "" };
+        var mark = s.State switch
+        {
+            "Done" => Html.Raw("<i class=\"bi bi-check-lg\"></i>"),
+            "Rejected" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
+            _ => Html.Raw((s.Level + 1).ToString())
+        };
+        var stateText = s.State switch
+        {
+            "Done" => ApplicantUi.Date(s.Date, isAr),
+            "Current" => L("In progress", "جارية"),
+            "Rejected" => L("Returned", "مُعادة"),
+            _ => L("Waiting", "في الانتظار")
+        };
+        <li class="@cls"><span>@mark</span><em>@s.LabelEn</em><small>@stateText</small></li>
+    }
+    </ol>
+    <a class="gp-btn gp-btn--outline gp-btn--sm" href="@U("/account/facility")?id=@f.Id">@L("Open the establishment", "فتح ملف المنشأة")</a>
+    </div>
+}
+
+@if (reference.Length == 0 && !unauthorized)
+{
+    var reqs = myRequests?.Data ?? new List<ServiceRequestItem>();
+    var facs = myFacilities?.Data ?? new List<FacilitySummary>();
+    <div class="gp-panel gp-panel--flush">
+    @if (reqs.Count == 0 && facs.Count == 0)
+    {
+        <p class="gp-pad gp-muted">@L("You have no requests yet.", "لا توجد لديك طلبات بعد.") <a class="gp-textlink" href="@U("/account/new-request")">@L("Request a service", "اطلب خدمة")</a></p>
+    }
+    else
+    {
+        <div class="gp-table-wrap">
+        <table class="gp-table gp-table--click">
+        <thead><tr><th>@L("Reference", "الرقم المرجعي")</th><th>@L("Request", "الطلب")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th></tr></thead>
+        <tbody>
+        @foreach (var x in reqs)
+        {
+            <tr data-href="@U("/track")?reference=@Uri.EscapeDataString(x.Reference)">
+            <td class="gp-ref">@x.Reference</td>
+            <td>@(isAr ? x.ServiceNameAr : x.ServiceNameEn)</td>
+            <td>@ApplicantUi.Date(x.SubmittedAt, isAr)</td>
+            <td><span class="@ApplicantUi.RequestStatusPill(x.Status)">@ApplicantUi.RequestStatusLabel(x.Status, isAr)</span></td>
+            </tr>
+        }
+        @foreach (var x in facs)
+        {
+            <tr data-href="@U("/track")?reference=@ApplicantUi.Reference(x.Id)">
+            <td class="gp-ref">@ApplicantUi.Reference(x.Id)</td>
+            <td>@L("Establishment registration", "تسجيل منشأة") — @((isAr && !string.IsNullOrWhiteSpace(x.FacilityNameLocal) ? x.FacilityNameLocal : x.FacilityName) ?? "—")</td>
+            <td>@ApplicantUi.Date(x.SubmittedAt, isAr)</td>
+            <td><span class="@ApplicantUi.StatusPill(x.ApprovalStatus)">@ApplicantUi.StatusLabel(x.ApprovalStatus, isAr)</span></td>
+            </tr>
+        }
+        </tbody>
+        </table>
+        </div>
+    }
+    </div>
+}
 </div>

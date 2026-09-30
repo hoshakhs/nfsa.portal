@@ -25,23 +25,23 @@
     // ───────────── List of my facilities ─────────────
     var list = mine?.Data ?? new List<FacilitySummary>();
     <div class="gp-phead">
-    <div><h1>@L("My facilities", "منشآتي")</h1><p>@L("Open a facility to upload its documents and follow its approval.", "افتح المنشأة لرفع مستنداتها ومتابعة اعتمادها.")</p></div>
-    <a class="gp-btn gp-btn--primary" href="@U("/account/facility-register")"><i class="bi bi-plus-lg"></i><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+    <div><h1>@L("My establishments", "منشآتي")</h1><p>@L("Open an establishment to upload its documents and follow its review.", "افتح المنشأة لرفع مستنداتها ومتابعة مراجعتها.")</p></div>
+    <a class="gp-btn gp-btn--primary" href="@U("/account/facility-register")"><i class="bi bi-plus-lg"></i><span>@L("Register an establishment", "تسجيل منشأة")</span></a>
     </div>
     @if (mine is { Ok: false })
     {
-        <div class="gp-form-error">@L("Your facilities could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل منشآتك حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+        <div class="gp-form-error">@L("Your establishments could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل منشآتك حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
     }
     <div class="gp-panel gp-panel--flush">
     @if (list.Count == 0)
     {
-        <p class="gp-pad gp-muted">@L("You haven't registered any facility yet.", "لم تسجل أي منشأة بعد.")</p>
+        <p class="gp-pad gp-muted">@L("You haven't registered any establishment yet.", "لم تسجل أي منشأة بعد.")</p>
     }
     else
     {
         <div class="gp-table-wrap">
         <table class="gp-table gp-table--click">
-        <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Facility", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
+        <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Establishment", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
         <tbody>
         @foreach (var f in list)
         {
@@ -62,9 +62,9 @@ else if (!detail.Ok || detail.Data == null)
 {
     // ───────────── Not found / error ─────────────
     <div class="gp-panel gp-center">
-    <h1 class="gp-h3">@(detail.Status == 404 ? L("Facility not found", "المنشأة غير موجودة") : L("The facility could not be loaded", "تعذر تحميل بيانات المنشأة"))</h1>
+    <h1 class="gp-h3">@(detail.Status == 404 ? L("Establishment not found", "المنشأة غير موجودة") : L("The establishment could not be loaded", "تعذر تحميل بيانات المنشأة"))</h1>
     <p class="gp-muted">@(detail.Status == 404 ? L("It doesn't exist or it isn't registered under your account.", "غير موجودة أو ليست مسجلة باسم حسابك.") : L("Please refresh the page in a moment.", "أعد تحميل الصفحة بعد قليل."))</p>
-    <a class="gp-btn gp-btn--outline" href="@U("/account/facility")">@L("My facilities", "منشآتي")</a>
+    <a class="gp-btn gp-btn--outline" href="@U("/account/facility")">@L("My establishments", "منشآتي")</a>
     </div>
 }
 else
@@ -96,15 +96,15 @@ else
     }
     else if (ApplicantUi.IsDraft(f.ApprovalStatus))
     {
-        <div class="gp-next"><i class="bi bi-info-circle"></i><div>@L("Step 2 of 3: upload the required documents. Step 3: submit the facility for approval.", "الخطوة 2 من 3: ارفع المستندات المطلوبة. الخطوة 3: قدّم المنشأة للاعتماد.")</div></div>
+        <div class="gp-next"><i class="bi bi-info-circle"></i><div>@L("Step 2 of 3: upload the required documents. Step 3: submit the establishment for review.", "الخطوة 2 من 3: ارفع المستندات المطلوبة. الخطوة 3: قدّم المنشأة للمراجعة.")</div></div>
     }
     else if (ApplicantUi.IsApproved(f.ApprovalStatus))
     {
-        <div class="gp-next"><i class="bi bi-patch-check"></i><div>@L("Your facility is approved.", "تم اعتماد منشأتك.")</div></div>
+        <div class="gp-next"><i class="bi bi-patch-check"></i><div>@L("Your establishment is registered.", "تم تسجيل منشأتك.")</div></div>
     }
 
     <div class="gp-panel">
-    <h2 class="gp-h3">@L("Approval stages", "مراحل الاعتماد")</h2>
+    <h2 class="gp-h3">@L("Review stages", "مراحل المراجعة")</h2>
     <ol class="gp-progress gp-progress--auto">
     <li class="@(submitted ? "gp-is-done" : "gp-is-current")"><span>@(submitted ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("1"))</span><em>@L("Submitted", "تقديم الطلب")</em><small>@ApplicantUi.Date(f.SubmittedAt, isAr)</small></li>
     @foreach (var s in f.Stages)
@@ -195,9 +195,9 @@ else
         <div class="gp-form-actions">
         <button class="gp-btn gp-btn--primary" type="button"
                 data-api-post="/portal/api/facilities/@f.Id/submit"
-                data-confirm="@L("Submit this facility for approval? You can't change it while it is under review.", "هل تريد تقديم المنشأة للاعتماد؟ لا يمكن تعديلها أثناء المراجعة.")"
+                data-confirm="@L("Submit this establishment for review? You can't change it while it is under review.", "هل تريد تقديم المنشأة للمراجعة؟ لا يمكن تعديلها أثناء المراجعة.")"
                 disabled="@(missing.Count > 0 ? "disabled" : null)">
-            <i class="bi bi-send"></i><span>@(ApplicantUi.IsReturned(f.ApprovalStatus) ? L("Resubmit for approval", "إعادة التقديم للاعتماد") : L("Submit for approval", "تقديم للاعتماد"))</span>
+            <i class="bi bi-send"></i><span>@(ApplicantUi.IsReturned(f.ApprovalStatus) ? L("Resubmit for review", "إعادة التقديم للمراجعة") : L("Submit for review", "تقديم للمراجعة"))</span>
         </button>
         @if (missing.Count > 0)
         {
@@ -209,13 +209,13 @@ else
 
     <div class="gp-stack">
     <div class="gp-panel">
-    <h2 class="gp-h3">@L("Facility details", "بيانات المنشأة")</h2>
+    <h2 class="gp-h3">@L("Establishment details", "بيانات المنشأة")</h2>
     <dl class="gp-review">
     <dt>@L("Name (English)", "الاسم بالإنجليزية")</dt><dd>@Or(f.FacilityName)</dd>
     <dt>@L("Name (Arabic)", "الاسم بالعربية")</dt><dd>@Or(f.FacilityNameLocal)</dd>
     <dt>@L("Trade name", "الاسم التجاري")</dt><dd>@Or(f.TradeName)</dd>
     <dt>@L("Sector", "القطاع")</dt><dd>@Or(sector)</dd>
-    <dt>@L("Facility type", "نوع المنشأة")</dt><dd>@Or(type)</dd>
+    <dt>@L("Establishment type", "نوع المنشأة")</dt><dd>@Or(type)</dd>
     <dt>@L("Address", "العنوان")</dt><dd>@Or(string.Join("، ", new[] { f.Street, f.District, f.AdministrativeArea, f.Governorate }.Where(x => !string.IsNullOrWhiteSpace(x))))</dd>
     <dt>@L("Submitted on", "تاريخ التقديم")</dt><dd>@ApplicantUi.Date(f.SubmittedAt, isAr)</dd>
     </dl>

@@ -37,7 +37,7 @@
     var services = list.Data ?? new List<ServiceSummary>();
     var groups = services.GroupBy(s => T(s.CategoryEn, s.CategoryAr)).ToList();
 
-    <div class="gp-phead"><div><h1>@L("New service request", "طلب خدمة جديد")</h1><p>@L("Choose the service you need. You'll fill its form for one of your facilities.", "اختر الخدمة التي تحتاجها، ثم املأ نموذجها لإحدى منشآتك.")</p></div></div>
+    <div class="gp-phead"><div><h1>@L("New service request", "طلب خدمة جديد")</h1><p>@L("Choose the service you need. You'll fill its form for one of your establishments.", "اختر الخدمة التي تحتاجها، ثم املأ نموذجها لإحدى منشآتك.")</p></div></div>
 
     @if (!list.Ok)
     {
@@ -132,14 +132,14 @@ else
         {
             <div class="gp-next gp-next--gold"><i class="bi bi-info-circle"></i><div>
             @(s.RequiresApprovedFacility
-                ? L("This service needs an approved facility, and none of your facilities is approved yet.", "هذه الخدمة تتطلب منشأة معتمدة، ولا توجد لديك منشأة معتمدة بعد.")
-                : L("Register a facility first.", "سجّل منشأة أولًا."))
-            <br /><a class="gp-textlink" href="@U("/account/facility")">@L("My facilities", "منشآتي")</a>
+                ? L("This service needs a registered establishment, and none of your establishments is registered yet.", "هذه الخدمة تتطلب منشأة مسجلة، ولا توجد لديك منشأة مسجلة بعد.")
+                : L("Register an establishment first.", "سجّل منشأة أولًا."))
+            <br /><a class="gp-textlink" href="@U("/account/facility")">@L("My establishments", "منشآتي")</a>
             </div></div>
         }
         else
         {
-            <h2 class="gp-h3">@L("For which facility?", "لأي منشأة؟")</h2>
+            <h2 class="gp-h3">@L("For which establishment?", "لأي منشأة؟")</h2>
             <div class="gp-choice-list" data-facility-list>
             @foreach (var f in eligible)
             {
@@ -183,7 +183,7 @@ else
         {
             <dt>@L("Processing time", "مدة الإنجاز")</dt><dd>@L($"{s.ProcessingDays} days", $"{s.ProcessingDays} يومًا")</dd>
         }
-        <dt>@L("Who can apply", "من يمكنه التقديم")</dt><dd>@(s.RequiresApprovedFacility ? L("Approved facilities", "المنشآت المعتمدة") : L("Registered facilities", "المنشآت المسجلة"))</dd>
+        <dt>@L("Who can apply", "من يمكنه التقديم")</dt><dd>@(s.RequiresApprovedFacility ? L("Approved establishments", "المنشآت المعتمدة") : L("Registered establishments", "المنشآت المسجلة"))</dd>
         </dl>
         </aside>
         </div>

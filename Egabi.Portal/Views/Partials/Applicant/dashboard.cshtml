@@ -25,11 +25,11 @@
 <div class="gp-phead">
 <div>
 <h1>@L("Welcome", "مرحبًا") @me.NameFor(isAr)</h1>
-<p>@(needAction.Count == 0 ? L("Nothing is waiting for you right now.", "لا يوجد ما ينتظر إجراءك حاليًا.") : L("Some of your facilities need your action.", "بعض منشآتك تحتاج إلى إجراء منك."))</p>
+<p>@(needAction.Count == 0 ? L("Nothing is waiting for you right now.", "لا يوجد ما ينتظر إجراءك حاليًا.") : L("Some of your establishments need your action.", "بعض منشآتك تحتاج إلى إجراء منك."))</p>
 </div>
 <div class="gp-form-actions">
 <a class="gp-btn gp-btn--primary" href="@U("/account/new-request")"><i class="bi bi-plus-lg"></i><span>@L("New service request", "طلب خدمة جديد")</span></a>
-<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register an establishment", "تسجيل منشأة")</span></a>
 </div>
 </div>
 
@@ -68,18 +68,18 @@ else
 
 <div class="gp-panel">
 <div class="gp-section-head">
-<h2 class="gp-h3">@L("My facilities", "منشآتي")</h2>
+<h2 class="gp-h3">@L("My establishments", "منشآتي")</h2>
 <a class="gp-textlink" href="@U("/account/applications")">@L("All", "الكل")</a>
 </div>
 @if (list.Count == 0)
 {
-    <p class="gp-muted">@L("You haven't registered any facility yet.", "لم تسجل أي منشأة بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first facility", "سجّل منشأتك الأولى")</a></p>
+    <p class="gp-muted">@L("You haven't registered any establishment yet.", "لم تسجل أي منشأة بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first establishment", "سجّل منشأتك الأولى")</a></p>
 }
 else
 {
     <div class="gp-table-wrap">
     <table class="gp-table gp-table--click">
-    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Facility", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
+    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Establishment", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
     <tbody>
     @foreach (var f in list.Take(5))
     {
