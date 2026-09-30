@@ -1,0 +1,74 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<a class="gp-back" href="@U("/account/applications")"><i class="bi bi-arrow-left"></i><span>@L("Back to my applications", "العودة إلى طلباتي")</span></a>
+<div class="gp-phead">
+<div>
+<span class="gp-ref">GHR-2026-004182</span>
+<h1>@L("Healthcare facility accreditation", "اعتماد المنشآت الصحية")</h1>
+<p>@L("Nile Valley Specialized Hospital · Submitted 02 Sep 2026", "مستشفى وادي النيل التخصصي · قُدم في 02 سبتمبر 2026")</p>
+</div>
+<span class="gp-pill gp-pill--info gp-pill--lg">@L("Visit scheduled", "زيارة مجدولة")</span>
+</div>
+<div class="gp-tabset">
+<div class="gp-tabs" role="tablist">
+<button class="gp-tab gp-is-on" data-tab="ov" type="button">@L("Overview", "نظرة عامة")</button>
+<button class="gp-tab" data-tab="docs" type="button">@L("Documents", "المستندات")</button>
+<button class="gp-tab" data-tab="pay" type="button">@L("Payments", "المدفوعات")</button>
+<button class="gp-tab" data-tab="msg" type="button">@L("Messages", "المراسلات")</button>
+</div>
+<div class="gp-tabpanel gp-is-on" data-panel="ov">
+<div class="gp-split">
+<dl class="gp-review">
+<dt>@L("Programme", "البرنامج")</dt><dd>@L("Hospitals", "المستشفيات")</dd>
+<dt>@L("Beds", "عدد الأسرّة")</dt><dd>180</dd>
+<dt>@L("Survey team lead", "رئيس فريق التقييم")</dt><dd>@L("Dr. Ahmed Fouad", "د. أحمد فؤاد")</dd>
+<dt>@L("Visit dates", "موعد الزيارة")</dt><dd>@L("12 – 13 Oct 2026", "12 – 13 أكتوبر 2026")</dd>
+<dt>@L("Expected decision", "القرار المتوقع")</dt><dd>@L("November 2026", "نوفمبر 2026")</dd>
+</dl>
+<div>
+<h3 class="gp-h3">@L("Latest updates", "آخر التحديثات")</h3>
+<ul class="gp-timeline">
+<li><time>@L("18 Sep 2026", "18 سبتمبر 2026")</time><p>@L("Survey visit scheduled.", "تم تحديد موعد زيارة التقييم.")</p></li>
+<li><time>@L("14 Sep 2026", "14 سبتمبر 2026")</time><p>@L("Payment received.", "تم استلام السداد.")</p></li>
+<li><time>@L("11 Sep 2026", "11 سبتمبر 2026")</time><p>@L("Documents accepted.", "تم قبول المستندات.")</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="gp-tabpanel" data-panel="docs">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Document", "المستند")</th><th>@L("Version", "الإصدار")</th><th>@L("Status", "الحالة")</th><th></th></tr></thead>
+<tbody>
+<tr><td>licence_2026.pdf</td><td>v1</td><td><span class="gp-pill gp-pill--ok">@L("Accepted", "مقبول")</span></td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td>SAT_report_Q3.xlsx</td><td>v2</td><td><span class="gp-pill gp-pill--ok">@L("Accepted", "مقبول")</span></td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td>org_chart.pdf</td><td>v1</td><td><span class="gp-pill gp-pill--ok">@L("Accepted", "مقبول")</span></td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="gp-tabpanel" data-panel="pay">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Invoice", "الفاتورة")</th><th>@L("Amount", "المبلغ")</th><th>@L("Status", "الحالة")</th><th></th></tr></thead>
+<tbody><tr><td class="gp-ref">INV-2026-00812</td><td>@L("EGP 45,000", "45,000 ج.م")</td><td><span class="gp-pill gp-pill--ok">@L("Paid", "مدفوعة")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--outline" type="button">@L("Receipt", "الإيصال")</button></td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="gp-tabpanel" data-panel="msg">
+<div class="gp-thread">
+<div class="gp-bubble gp-bubble--them"><strong>@L("Accreditation department", "إدارة الاعتماد")</strong><p>@L("The visit is scheduled for 12 and 13 October. Please confirm within 5 days.", "تم تحديد موعد الزيارة يومي 12 و13 أكتوبر. يرجى تأكيد الموعد خلال 5 أيام.")</p><time>@L("18 Sep", "18 سبتمبر")</time></div>
+<div class="gp-bubble gp-bubble--me"><p>@L("Thank you — we'll confirm after checking department schedules.", "شكرًا، سنؤكد بعد مراجعة جداول الأقسام.")</p><time>@L("19 Sep", "19 سبتمبر")</time></div>
+</div>
+<a class="gp-textlink" href="@U("/account/messages")">@L("Open the full conversation", "فتح المحادثة كاملة")</a>
+</div>
+</div>
+</div>

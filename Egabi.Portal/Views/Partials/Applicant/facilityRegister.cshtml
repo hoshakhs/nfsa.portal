@@ -1,0 +1,125 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Register a facility — the SAME data as the egabi Platform form /Facilities/Create.
+    // Step 1 of 3: save as Draft → (facility page) upload documents → submit for approval.
+    // Lists (sectors, types, locations…) are loaded live by wwwroot/js/portal-api.js.
+    // data-field = field name in the platform's "Form fields" settings (hide / required).
+    // data-section = tab name in those settings: custom fields added there appear
+    // automatically in the matching section (see portal-api.js → custom fields).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    var choose = L("— Choose —", "— اختر —");
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("Register a healthcare facility", "تسجيل منشأة صحية")</h1><p>@L("Step 1 of 3: facility details. Next you'll upload the documents, then submit for approval.", "الخطوة 1 من 3: بيانات المنشأة. بعدها ترفع المستندات ثم تقدم الطلب للاعتماد.")</p></div>
+</div>
+
+<form class="gp-panel" data-api="/portal/api/facilities" data-form-config="facility-form-config" novalidate>
+@Html.AntiForgeryToken()
+<div class="gp-form-error" data-form-error hidden></div>
+
+<h2 class="gp-h3">@L("Basic information", "البيانات الأساسية")</h2>
+<div class="gp-form-grid" data-section="Basic">
+<div class="gp-field" data-field="FacilityName"><label for="f-name">@L("Facility name (English)", "اسم المنشأة (بالإنجليزية)") <span class="gp-req">*</span></label><input id="f-name" name="facilityName" type="text" maxlength="300" dir="ltr" required /><small class="gp-field-error" data-error-for="facilityName"></small></div>
+<div class="gp-field" data-field="FacilityNameLocal"><label for="f-name-ar">@L("Facility name (Arabic)", "اسم المنشأة (بالعربية)")</label><input id="f-name-ar" name="facilityNameLocal" type="text" maxlength="300" dir="rtl" /><small class="gp-field-error" data-error-for="facilityNameLocal"></small></div>
+<div class="gp-field" data-field="TradeName"><label for="f-trade">@L("Trade name", "الاسم التجاري")</label><input id="f-trade" name="tradeName" type="text" maxlength="300" /><small class="gp-field-error" data-error-for="tradeName"></small></div>
+<div class="gp-field" data-field="LegalEntityName"><label for="f-legal-name">@L("Legal entity name", "اسم الكيان القانوني")</label><input id="f-legal-name" name="legalEntityName" type="text" maxlength="300" /><small class="gp-field-error" data-error-for="legalEntityName"></small></div>
+<div class="gp-field" data-field="SectorID"><label for="f-sector">@L("Sector", "القطاع") <span class="gp-req">*</span></label><select id="f-sector" name="sectorID" data-type="int" data-lookup="sectors" required><option value="">@choose</option></select><small class="gp-field-error" data-error-for="sectorID"></small></div>
+<div class="gp-field" data-field="FacilityTypeID"><label for="f-type">@L("Facility type", "نوع المنشأة") <span class="gp-req">*</span></label><select id="f-type" name="facilityTypeID" data-type="int" data-lookup="facility-types" data-depends="sectorID" data-param="sectorId" required><option value="">@choose</option></select><small class="gp-field-error" data-error-for="facilityTypeID"></small></div>
+</div>
+<label class="gp-check" data-field="IsHeadOffice"><input name="isHeadOffice" type="checkbox" data-type="bool" /><span>@L("This is the head office", "هذا هو المقر الرئيسي")</span></label>
+
+<h2 class="gp-h3">@L("Legal information", "البيانات القانونية")</h2>
+<div class="gp-form-grid" data-section="Legal">
+<div class="gp-field" data-field="CommercialRegistrationNumber"><label for="f-cr">@L("Commercial registration no.", "رقم السجل التجاري")</label><input id="f-cr" name="commercialRegistrationNumber" type="text" maxlength="100" /><small class="gp-field-error" data-error-for="commercialRegistrationNumber"></small></div>
+<div class="gp-field" data-field="CommercialRegistrationDate"><label for="f-cr-date">@L("Commercial registration date", "تاريخ السجل التجاري")</label><input id="f-cr-date" name="commercialRegistrationDate" type="date" /><small class="gp-field-error" data-error-for="commercialRegistrationDate"></small></div>
+<div class="gp-field" data-field="TaxNumber"><label for="f-tax">@L("Tax number", "الرقم الضريبي")</label><input id="f-tax" name="taxNumber" type="text" maxlength="100" /><small class="gp-field-error" data-error-for="taxNumber"></small></div>
+<div class="gp-field" data-field="VATNumber"><label for="f-vat">@L("VAT number", "رقم ضريبة القيمة المضافة")</label><input id="f-vat" name="vatNumber" type="text" maxlength="100" /><small class="gp-field-error" data-error-for="vatNumber"></small></div>
+<div class="gp-field" data-field="LegalFormId"><label for="f-legal-form">@L("Legal form", "الشكل القانوني")</label><select id="f-legal-form" name="legalFormId" data-type="int" data-lookup="legal-forms"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="legalFormId"></small></div>
+</div>
+
+<h2 class="gp-h3">@L("Licence", "الترخيص")</h2>
+<div class="gp-form-grid" data-section="License">
+<div class="gp-field" data-field="LicenseNumber"><label for="f-lic">@L("Licence number", "رقم الترخيص")</label><input id="f-lic" name="licenseNumber" type="text" maxlength="100" /><small class="gp-field-error" data-error-for="licenseNumber"></small></div>
+<div class="gp-field" data-field="LicenseTypeId"><label for="f-lic-type">@L("Licence type", "نوع الترخيص")</label><select id="f-lic-type" name="licenseTypeId" data-type="int" data-lookup="license-types"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="licenseTypeId"></small></div>
+<div class="gp-field" data-field="IssuingAuthorityId"><label for="f-lic-auth">@L("Issuing authority", "جهة الإصدار")</label><select id="f-lic-auth" name="issuingAuthorityId" data-type="int" data-lookup="issuing-authorities"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="issuingAuthorityId"></small></div>
+<div class="gp-field" data-field="IssueDate"><label for="f-lic-issue">@L("Issue date", "تاريخ الإصدار")</label><input id="f-lic-issue" name="issueDate" type="date" /><small class="gp-field-error" data-error-for="issueDate"></small></div>
+<div class="gp-field" data-field="ExpiryDate"><label for="f-lic-exp">@L("Expiry date", "تاريخ الانتهاء")</label><input id="f-lic-exp" name="expiryDate" type="date" /><small class="gp-field-error" data-error-for="expiryDate"></small></div>
+</div>
+
+<h2 class="gp-h3">@L("Location", "الموقع")</h2>
+<div class="gp-form-grid" data-section="Location">
+<div class="gp-field" data-field="Country"><label for="f-country">@L("Country", "الدولة")</label><select id="f-country" name="country" data-lookup="countries" data-store="name" data-default="Egypt"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="country"></small></div>
+<div class="gp-field" data-field="Governorate"><label for="f-gov">@L("Governorate", "المحافظة")</label><select id="f-gov" name="governorate" data-lookup="governorates" data-depends="country" data-param="countryId" data-store="name"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="governorate"></small></div>
+<div class="gp-field" data-field="AdministrativeArea"><label for="f-area">@L("City / administrative area", "المدينة / المركز")</label><select id="f-area" name="administrativeArea" data-lookup="administrative-areas" data-depends="governorate" data-param="governorateId" data-store="name"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="administrativeArea"></small></div>
+<div class="gp-field" data-field="District"><label for="f-district">@L("District", "الحي")</label><select id="f-district" name="district" data-lookup="districts" data-depends="administrativeArea" data-param="administrativeAreaId" data-store="name"><option value="">@choose</option></select><small class="gp-field-error" data-error-for="district"></small></div>
+<div class="gp-field gp-field--full" data-field="Street"><label for="f-street">@L("Street", "الشارع")</label><input id="f-street" name="street" type="text" maxlength="300" /><small class="gp-field-error" data-error-for="street"></small></div>
+<div class="gp-field" data-field="BuildingNumber"><label for="f-bld">@L("Building number", "رقم المبنى")</label><input id="f-bld" name="buildingNumber" type="text" maxlength="50" /><small class="gp-field-error" data-error-for="buildingNumber"></small></div>
+<div class="gp-field" data-field="PostalCode"><label for="f-postal">@L("Postal code", "الرمز البريدي")</label><input id="f-postal" name="postalCode" type="text" maxlength="20" /><small class="gp-field-error" data-error-for="postalCode"></small></div>
+<div class="gp-field" data-field="Latitude"><label for="f-lat">@L("Latitude", "خط العرض")</label><input id="f-lat" name="latitude" type="number" step="any" min="-90" max="90" data-type="number" dir="ltr" /><small class="gp-field-error" data-error-for="latitude"></small></div>
+<div class="gp-field" data-field="Longitude"><label for="f-lng">@L("Longitude", "خط الطول")</label><input id="f-lng" name="longitude" type="number" step="any" min="-180" max="180" data-type="number" dir="ltr" /><small class="gp-field-error" data-error-for="longitude"></small></div>
+</div>
+
+<h2 class="gp-h3">@L("Infrastructure", "البنية التحتية")</h2>
+<div class="gp-form-grid" data-section="Infrastructure">
+<div class="gp-field" data-field="AreaSize"><label for="f-area-size">@L("Area (m²)", "المساحة (م²)")</label><input id="f-area-size" name="areaSize" type="number" step="any" min="0" data-type="number" /><small class="gp-field-error" data-error-for="areaSize"></small></div>
+<div class="gp-field" data-field="NumberOfBuildings"><label for="f-buildings">@L("Number of buildings", "عدد المباني")</label><input id="f-buildings" name="numberOfBuildings" type="number" min="0" step="1" data-type="int" /><small class="gp-field-error" data-error-for="numberOfBuildings"></small></div>
+<div class="gp-field" data-field="NumberOfFloors"><label for="f-floors">@L("Number of floors", "عدد الطوابق")</label><input id="f-floors" name="numberOfFloors" type="number" min="0" step="1" data-type="int" /><small class="gp-field-error" data-error-for="numberOfFloors"></small></div>
+<div class="gp-field" data-field="StorageCapacity"><label for="f-storage">@L("Storage capacity", "السعة التخزينية")</label><input id="f-storage" name="storageCapacity" type="number" step="any" min="0" data-type="number" /><small class="gp-field-error" data-error-for="storageCapacity"></small></div>
+</div>
+
+<h2 class="gp-h3">@L("Owners and shareholders", "الملاك والمساهمون")</h2>
+<div data-repeater="owners">
+<small class="gp-field-error" data-error-for="owners"></small>
+<div data-rows></div>
+<template>
+<div class="gp-repeat-row" data-row>
+<div class="gp-form-grid">
+<div class="gp-field"><label>@L("Full name", "الاسم الكامل") <span class="gp-req">*</span></label><input name="ownerName" type="text" maxlength="200" /><small class="gp-field-error" data-error-for="ownerName"></small></div>
+<div class="gp-field"><label>@L("Name in Arabic", "الاسم بالعربية")</label><input name="ownerNameAr" type="text" maxlength="200" dir="rtl" /></div>
+<div class="gp-field"><label>@L("Role", "الصفة")</label><select name="role"><option value="Owner">@L("Owner", "مالك")</option><option value="Shareholder">@L("Shareholder", "مساهم")</option><option value="Director">@L("Director", "مدير")</option><option value="Manager">@L("Manager", "مسؤول")</option></select></div>
+<div class="gp-field"><label>@L("Nationality", "الجنسية")</label><input name="ownerNationality" type="text" maxlength="100" /></div>
+<div class="gp-field"><label>@L("ID type", "نوع الهوية")</label><select name="ownerIDType"><option value="NationalID">@L("National ID", "بطاقة الرقم القومي")</option><option value="Passport">@L("Passport", "جواز سفر")</option><option value="ResidenceID">@L("Residence ID", "إقامة")</option></select></div>
+<div class="gp-field"><label>@L("ID number", "رقم الهوية")</label><input name="ownerIDNumber" type="text" maxlength="50" /><small class="gp-field-error" data-error-for="ownerIDNumber"></small></div>
+<div class="gp-field"><label>@L("Ownership %", "نسبة الملكية %")</label><input name="ownershipPercentage" type="number" min="0" max="100" step="0.01" data-type="number" /><small class="gp-field-error" data-error-for="ownershipPercentage"></small></div>
+<div class="gp-field"><label>@L("Email", "البريد الإلكتروني")</label><input name="email" type="email" maxlength="256" /><small class="gp-field-error" data-error-for="email"></small></div>
+<div class="gp-field"><label>@L("Phone", "الهاتف")</label><input name="phone" type="tel" maxlength="30" /></div>
+</div>
+<button class="gp-btn gp-btn--sm gp-btn--ghost" type="button" data-remove-row><i class="bi bi-trash"></i><span>@L("Remove", "حذف")</span></button>
+</div>
+</template>
+<button class="gp-btn gp-btn--sm gp-btn--outline" type="button" data-add-row><i class="bi bi-plus-lg"></i><span>@L("Add owner", "إضافة مالك")</span></button>
+</div>
+<div class="gp-form-grid" data-section="Owners"></div>
+
+<h2 class="gp-h3">@L("Contact persons", "مسؤولو التواصل")</h2>
+<div data-repeater="contacts">
+<small class="gp-field-error" data-error-for="contacts"></small>
+<div data-rows></div>
+<template>
+<div class="gp-repeat-row" data-row>
+<div class="gp-form-grid">
+<div class="gp-field"><label>@L("Full name", "الاسم الكامل") <span class="gp-req">*</span></label><input name="contactName" type="text" maxlength="200" /><small class="gp-field-error" data-error-for="contactName"></small></div>
+<div class="gp-field"><label>@L("Position", "الوظيفة")</label><input name="position" type="text" maxlength="150" /></div>
+<div class="gp-field"><label>@L("Phone", "الهاتف")</label><input name="phoneNumber" type="tel" maxlength="30" /></div>
+<div class="gp-field"><label>@L("Mobile", "المحمول")</label><input name="mobile" type="tel" maxlength="30" /></div>
+<div class="gp-field"><label>@L("Email", "البريد الإلكتروني")</label><input name="email" type="email" maxlength="256" /><small class="gp-field-error" data-error-for="email"></small></div>
+</div>
+<label class="gp-check"><input name="isPrimary" type="checkbox" data-type="bool" /><span>@L("Primary contact", "جهة التواصل الرئيسية")</span></label>
+<button class="gp-btn gp-btn--sm gp-btn--ghost" type="button" data-remove-row><i class="bi bi-trash"></i><span>@L("Remove", "حذف")</span></button>
+</div>
+</template>
+<button class="gp-btn gp-btn--sm gp-btn--outline" type="button" data-add-row><i class="bi bi-plus-lg"></i><span>@L("Add contact", "إضافة مسؤول تواصل")</span></button>
+</div>
+<div class="gp-form-grid" data-section="Contacts"></div>
+
+<div class="gp-form-actions">
+<button class="gp-btn gp-btn--primary" type="submit">@L("Save and continue to documents", "حفظ والمتابعة لرفع المستندات")</button>
+<a class="gp-btn gp-btn--ghost" href="@U("/account")">@L("Cancel", "إلغاء")</a>
+</div>
+</form>
+</div>

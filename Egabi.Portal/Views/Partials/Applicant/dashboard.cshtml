@@ -1,0 +1,93 @@
+@using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // Dashboard — real data from the egabi Platform API (my facilities).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+
+    var me = ApplicantAuth.Current(Context)!;
+    var result = await Api.GetMyFacilitiesAsync(me.Token);
+    var list = result.Data ?? new List<FacilitySummary>();
+
+    var inReview = list.Count(f => ApplicantUi.IsInReview(f.ApprovalStatus));
+    var needAction = list.Where(f => ApplicantUi.NeedsAction(f.ApprovalStatus)).ToList();
+    var approved = list.Count(f => ApplicantUi.IsApproved(f.ApprovalStatus));
+
+    string Name(FacilitySummary f) => (isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—";
+    string Sector(FacilitySummary f) => (isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn) ?? "";
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div>
+<h1>@L("Welcome", "مرحبًا") @me.NameFor(isAr)</h1>
+<p>@(needAction.Count == 0 ? L("Nothing is waiting for you right now.", "لا يوجد ما ينتظر إجراءك حاليًا.") : L("Some of your facilities need your action.", "بعض منشآتك تحتاج إلى إجراء منك."))</p>
+</div>
+<div class="gp-form-actions">
+<a class="gp-btn gp-btn--primary" href="@U("/account/new-request")"><i class="bi bi-plus-lg"></i><span>@L("New service request", "طلب خدمة جديد")</span></a>
+<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+</div>
+</div>
+
+@if (!result.Ok)
+{
+    <div class="gp-form-error">@L("Your data could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل بياناتك حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+}
+
+<div class="gp-kpis gp-kpis--3">
+<a class="gp-kpi" href="@U("/account/applications")"><strong>@inReview</strong><span>@L("Under review", "قيد المراجعة")</span></a>
+<a class="gp-kpi gp-kpi--warn" href="@U("/account/applications")"><strong>@needAction.Count</strong><span>@L("Need your action", "تتطلب إجراء منك")</span></a>
+<a class="gp-kpi" href="@U("/account/applications")"><strong>@approved</strong><span>@L("Approved", "معتمدة")</span></a>
+</div>
+
+<div class="gp-panel">
+<h2 class="gp-h3">@L("Waiting for you", "بانتظار إجرائك")</h2>
+@if (needAction.Count == 0)
+{
+    <p class="gp-muted">@L("You're all caught up.", "لا توجد إجراءات مطلوبة منك.")</p>
+}
+else
+{
+    <ul class="gp-todo">
+    @foreach (var f in needAction)
+    {
+        var returned = ApplicantUi.IsReturned(f.ApprovalStatus);
+        <li>
+        <span class="gp-todo-icon gp-todo-icon--warn"><i class="bi @(returned ? "bi-arrow-counterclockwise" : "bi-pencil-square")"></i></span>
+        <div><strong>@(returned ? L("Complete and resubmit", "استكمال وإعادة تقديم") : L("Upload documents and submit", "رفع المستندات والتقديم")) — @Name(f)</strong><span>@ApplicantUi.Reference(f.Id) · @ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span></div>
+        <a class="gp-btn gp-btn--sm gp-btn--primary" href="@U("/account/facility")?id=@f.Id">@L("Open", "فتح")</a>
+        </li>
+    }
+    </ul>
+}
+</div>
+
+<div class="gp-panel">
+<div class="gp-section-head">
+<h2 class="gp-h3">@L("My facilities", "منشآتي")</h2>
+<a class="gp-textlink" href="@U("/account/applications")">@L("All", "الكل")</a>
+</div>
+@if (list.Count == 0)
+{
+    <p class="gp-muted">@L("You haven't registered any facility yet.", "لم تسجل أي منشأة بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first facility", "سجّل منشأتك الأولى")</a></p>
+}
+else
+{
+    <div class="gp-table-wrap">
+    <table class="gp-table gp-table--click">
+    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Facility", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
+    <tbody>
+    @foreach (var f in list.Take(5))
+    {
+        <tr data-href="@U("/account/facility")?id=@f.Id"><td class="gp-ref">@ApplicantUi.Reference(f.Id)</td><td>@Name(f)</td><td>@Sector(f)</td><td><span class="@ApplicantUi.StatusPill(f.ApprovalStatus)">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span></td></tr>
+    }
+    </tbody>
+    </table>
+    </div>
+}
+</div>
+</div>

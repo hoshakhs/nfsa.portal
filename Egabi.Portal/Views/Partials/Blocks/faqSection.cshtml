@@ -1,0 +1,23 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var items = Model.Content.Value<BlockListModel>("items");
+}
+<div class="gp-wrap gp-section gp-faq-block">
+    @if (!string.IsNullOrWhiteSpace(Model.Content.Value<string>("title")))
+    {
+        <h2 class="gp-h3">@(Model.Content.Value<string>("title"))</h2>
+    }
+    @if (items != null)
+    {
+        foreach (var q in items)
+        {
+            var answer = q.Content.Value<IHtmlEncodedString>("answer")?.ToHtmlString();
+            <details class="gp-faq">
+                <summary>@(q.Content.Value<string>("question"))</summary>
+                <div class="gp-richtext gp-faq-answer">@Html.Raw(answer)</div>
+            </details>
+        }
+    }
+</div>

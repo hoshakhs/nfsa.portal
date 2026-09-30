@@ -1,0 +1,64 @@
+﻿@using Umbraco.Cms.Core.Models.PublishedContent
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "master.cshtml";
+    ViewData["Title"] = Model.Name;
+
+    // Which screen to show: Views/Partials/Applicant/{screen}.cshtml
+    var screen = Model.Value<string>("screen") ?? "dashboard";
+    // Sign-in / create-account screens are shown without the sidebar.
+    // (Who may open which screen is decided in Controllers/ApplicantPageController.cs.)
+    var isAuthScreen = screen is "login" or "register";
+
+    // Sidebar: the "My account" page and its sub-pages marked "Show in sidebar" (editable in the CMS),
+    // plus the public "Track a request" page right after "My applications".
+    var root = Model.Root();
+    var account = root?.Children().FirstOrDefault(x => x.ContentType.Alias == "applicantPage" && x.Value<string>("screen") == "dashboard");
+    var trackPage = root?.Children().FirstOrDefault(x => x.ContentType.Alias == "applicantPage" && x.Value<string>("screen") == "tracking");
+    var sideItems = new List<IPublishedContent>();
+    if (account != null)
+    {
+        sideItems.Add(account);
+        foreach (var child in account.Children().Where(x => x.Value<bool>("showInSidebar")))
+        {
+            sideItems.Add(child);
+            if (trackPage != null && child.Value<string>("screen") == "applications")
+            {
+                sideItems.Add(trackPage);
+            }
+        }
+    }
+    string? lastGroup = null;
+}
+@if (isAuthScreen)
+{
+    @await Html.PartialAsync("~/Views/Partials/Applicant/" + screen + ".cshtml", Model)
+}
+else
+{
+    <div class="gp-portal gp-is-active">
+        <div class="gp-wrap gp-portal-in">
+            <aside class="gp-side" aria-label="@Model.Name">
+                <div class="gp-side-group">
+                @foreach (var item in sideItems)
+                {
+                    var group = item.Value<string>("sidebarGroup");
+                    if (!string.IsNullOrWhiteSpace(group) && group != lastGroup)
+                    {
+                        @Html.Raw("</div><div class=\"gp-side-group\">")
+                        <h4>@group</h4>
+                        lastGroup = group;
+                    }
+                    <a href="@item.Url()" class="@(item.Id == Model.Id ? "gp-is-current" : "")">
+                        <i class="bi @(item.Value<string>("icon"))"></i><span>@item.Name</span>
+                    </a>
+                }
+                </div>
+            </aside>
+            <div class="gp-portal-main">
+                @await Html.PartialAsync("~/Views/Partials/Applicant/" + screen + ".cshtml", Model)
+            </div>
+        </div>
+    </div>
+}
+<div class="gp-toast" id="gp-toast" role="status" aria-live="polite"></div>

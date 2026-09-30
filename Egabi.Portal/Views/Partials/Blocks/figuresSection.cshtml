@@ -1,0 +1,17 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var items = Model.Content.Value<BlockListModel>("items");
+}
+@if (items != null && items.Any())
+{
+    <div class="gp-wrap gp-section gp-figures">
+        @foreach (var item in items)
+        {
+            <div>
+                <strong>@(item.Content.Value<string>("number"))</strong>
+                <span>@(item.Content.Value<string>("label"))</span>
+            </div>
+        }
+    </div>
+}

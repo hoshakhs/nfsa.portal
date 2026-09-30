@@ -1,0 +1,93 @@
+@using System.Globalization
+@using System.Text.Json
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // Batch 7 — "Correct and resubmit": /account/new-request?ref=SRV-2026-000012
+    // The officer returned the request. The applicant sees the officer's note and the
+    // same form (the version they submitted) filled with their answers, corrects it and
+    // resubmits. The workflow then continues on the platform.
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+
+    var me = ApplicantAuth.Current(Context)!;
+    var reference = Context.Request.Query["ref"].ToString().Trim();
+    var result = await Api.GetMyServiceRequestAsync(me.Token, reference);
+    var r = result.Data;
+}
+
+<div class="gp-screen">
+@if (result.Unauthorized)
+{
+    await ApplicantAuth.SignOutAsync(Context);
+    <div class="gp-panel gp-center">
+    <h1 class="gp-h3">@L("Your session has ended", "انتهت الجلسة")</h1>
+    <a class="gp-btn gp-btn--primary" href="@U("/account/login")?returnUrl=@Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString)">@L("Sign in again", "سجّل الدخول مرة أخرى")</a>
+    </div>
+}
+else if (!result.Ok || r == null)
+{
+    <div class="gp-panel gp-center">
+    <h1 class="gp-h3">@(result.Status == 404 ? L("Request not found", "الطلب غير موجود") : L("The request could not be loaded", "تعذر تحميل الطلب"))</h1>
+    <a class="gp-btn gp-btn--outline" href="@U("/account/applications")">@L("My applications", "طلباتي")</a>
+    </div>
+}
+else if (r.Status != "ActionRequired")
+{
+    <div class="gp-panel gp-center">
+    <h1 class="gp-h3">@L("Nothing to correct", "لا يوجد ما يلزم تعديله")</h1>
+    <p class="gp-muted">@L("This request is not waiting for a correction from you.", "هذا الطلب لا ينتظر تعديلًا منك.") <span class="@ApplicantUi.RequestStatusPill(r.Status)">@ApplicantUi.RequestStatusLabel(r.Status, isAr)</span></p>
+    <a class="gp-btn gp-btn--outline" href="@U("/account/applications")">@L("My applications", "طلباتي")</a>
+    </div>
+}
+else
+{
+    var facilityName = (isAr && !string.IsNullOrWhiteSpace(r.FacilityNameLocal) ? r.FacilityNameLocal : r.FacilityName) ?? "—";
+
+    <div class="gp-phead">
+    <div>
+    <a class="gp-back" href="@U("/account/applications")"><i class="bi @(isAr ? "bi-arrow-right" : "bi-arrow-left")"></i> @L("My applications", "طلباتي")</a>
+    <h1>@L("Correct and resubmit", "تعديل الطلب وإعادة تقديمه")</h1>
+    <p>@(isAr ? r.ServiceNameAr : r.ServiceNameEn) · <span class="gp-ref">@r.Reference</span> · @facilityName</p>
+    </div>
+    </div>
+
+    <div class="gp-returned">
+    <i class="bi bi-arrow-return-left"></i>
+    <div>
+    <strong>@L("GAHAR returned your request for correction", "أعادت الهيئة طلبك لاستكماله")</strong>
+    @if (r.ReturnedAt.HasValue)
+    {
+        <small>@ApplicantUi.Date(r.ReturnedAt.Value, isAr)</small>
+    }
+    <p>@(string.IsNullOrWhiteSpace(r.ReturnNote) ? L("Please review your answers and documents, then resubmit.", "يرجى مراجعة البيانات والمستندات ثم إعادة التقديم.") : r.ReturnNote)</p>
+    </div>
+    </div>
+
+    <div class="gp-panel">
+    @Html.AntiForgeryToken()
+    <div class="gp-form-error" data-form-error hidden></div>
+
+    <div id="gp-service-form" class="gp-service-form"
+         data-code="@r.ServiceCode" data-resubmit="@r.Reference" data-lang="@(isAr ? "ar" : "en")">
+        <p class="gp-muted">@L("Loading the form…", "جارٍ تحميل النموذج…")</p>
+    </div>
+    <script type="application/json" id="gp-service-schema">@Html.Raw(JsonSerializer.Serialize(r.Schema))</script>
+    <script type="application/json" id="gp-service-answers">@Html.Raw(JsonSerializer.Serialize(r.Answers))</script>
+
+    <div class="gp-form-actions">
+    <button class="gp-btn gp-btn--primary" type="button" data-service-submit
+            data-confirm="@L("Resubmit this request?", "هل تريد إعادة تقديم الطلب؟")">
+        <i class="bi bi-send"></i><span>@L("Resubmit request", "إعادة تقديم الطلب")</span>
+    </button>
+    <a class="gp-btn gp-btn--ghost" href="@U("/account/applications")">@L("Cancel", "إلغاء")</a>
+    </div>
+
+    <script src="/portal/forms/renderer.js" defer></script>
+    <script src="~/js/portal-services.js" asp-append-version="true" defer></script>
+    </div>
+}
+</div>

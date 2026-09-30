@@ -1,0 +1,134 @@
+@using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // My applications — real data from the egabi Platform API:
+    //   • service requests (Service Catalogue)
+    //   • facility registrations
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+
+    var me = ApplicantAuth.Current(Context)!;
+    var result = await Api.GetMyFacilitiesAsync(me.Token);
+    var list = result.Data ?? new List<FacilitySummary>();
+    var reqResult = await Api.GetMyServiceRequestsAsync(me.Token);
+    var requests = reqResult.Data ?? new List<ServiceRequestItem>();
+    var submitted = Context.Request.Query["submitted"].ToString();
+
+    string Name(FacilitySummary f) => (isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—";
+    string ReqFacility(ServiceRequestItem r) => (isAr && !string.IsNullOrWhiteSpace(r.FacilityNameLocal) ? r.FacilityNameLocal : r.FacilityName) ?? "—";
+    string Filter(string s) =>
+        ApplicantUi.IsDraft(s) ? "draft" :
+        ApplicantUi.IsReturned(s) ? "action" :
+        ApplicantUi.IsApproved(s) ? "done" : "progress";
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("My applications", "طلباتي")</h1><p>@L("Your service requests and facility registrations, and where each one stands.", "طلبات الخدمات وطلبات تسجيل المنشآت، وحالة كل منها.")</p></div>
+<div class="gp-form-actions">
+<a class="gp-btn gp-btn--primary" href="@U("/account/new-request")"><i class="bi bi-plus-lg"></i><span>@L("New service request", "طلب خدمة جديد")</span></a>
+<a class="gp-btn gp-btn--outline" href="@U("/account/facility-register")"><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+</div>
+</div>
+
+@if (result.Unauthorized || reqResult.Unauthorized)
+{
+    await ApplicantAuth.SignOutAsync(Context);
+    <div class="gp-form-error">@L("Your session has ended.", "انتهت الجلسة.") <a class="gp-textlink" href="@U("/account/login")">@L("Sign in again", "سجّل الدخول مرة أخرى")</a></div>
+}
+
+@if (!string.IsNullOrEmpty(submitted))
+{
+    <div class="gp-next"><i class="bi bi-check-circle"></i><div>@L("Your request was submitted. Reference:", "تم تقديم طلبك. رقم الطلب:") <strong class="gp-ref">@submitted</strong></div></div>
+}
+
+@if (!result.Ok || !reqResult.Ok)
+{
+    <div class="gp-form-error">@L("Some of your applications could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل بعض طلباتك حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+}
+
+    @* ── Service requests ── *@
+    <h2 class="gp-h3">@L("Service requests", "طلبات الخدمات")</h2>
+    @if (requests.Any(x => x.Status == "ActionRequired"))
+    {
+        <div class="gp-next gp-next--gold"><i class="bi bi-exclamation-circle"></i><div>@L("GAHAR returned a request to you for correction. Open it, correct it and resubmit.", "أعادت الهيئة إليك طلبًا لاستكماله. افتحه وعدّله ثم أعد تقديمه.")</div></div>
+    }
+    <div class="gp-panel gp-panel--flush">
+        @if (requests.Count == 0)
+        {
+    <p class="gp-pad gp-muted">@L("No service requests yet.", "لا توجد طلبات خدمات بعد.") <a class="gp-textlink" href="@U("/account/new-request")">@L("Request a service", "اطلب خدمة")</a></p>
+}
+else
+{
+    <div class="gp-table-wrap">
+    <table class="gp-table">
+    <thead><tr><th>@L("Reference", "رقم الطلب")</th><th>@L("Service", "الخدمة")</th><th>@L("Facility", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th><th>@L("Current step", "المرحلة الحالية")</th></tr></thead>
+    <tbody>
+    @foreach (var r in requests)
+    {
+        <tr class="@(r.Reference == submitted ? "gp-is-flash" : "")">
+        <td class="gp-ref">@r.Reference</td>
+        <td>@(isAr ? r.ServiceNameAr : r.ServiceNameEn)</td>
+                                <td>@ReqFacility(r)</td>
+                                <td>@ApplicantUi.Date(r.SubmittedAt, isAr)</td>
+                                <td><span class="@ApplicantUi.RequestStatusPill(r.Status)">@ApplicantUi.RequestStatusLabel(r.Status, isAr)</span></td>
+                                <td>
+                                    @if (r.Status == "ActionRequired")
+                                    {
+                                        <a class="gp-btn gp-btn--sm gp-btn--gold" href="@U("/account/new-request")?ref=@Uri.EscapeDataString(r.Reference)"><i class="bi bi-pencil-square"></i><span>@L("Correct and resubmit", "تعديل وإعادة تقديم")</span></a>
+                                    }
+                                    else
+                                    {
+                                        <text>@(r.CurrentStage ?? "—")</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+    </table>
+    </div>
+}
+</div>
+
+@* ── Facility registrations ── *@
+<h2 class="gp-h3">@L("Facility registrations", "تسجيل المنشآت")</h2>
+<div class="gp-filterbar" data-rowfilter="gp-apps-table">
+<button class="gp-seg gp-is-on" data-filter="all" type="button">@L("All", "الكل")</button>
+<button class="gp-seg" data-filter="progress" type="button">@L("Under review", "قيد المراجعة")</button>
+<button class="gp-seg" data-filter="action" type="button">@L("Returned", "مُعادة")</button>
+<button class="gp-seg" data-filter="done" type="button">@L("Approved", "معتمدة")</button>
+<button class="gp-seg" data-filter="draft" type="button">@L("Drafts", "مسودات")</button>
+</div>
+
+<div class="gp-panel gp-panel--flush">
+@if (list.Count == 0)
+{
+    <p class="gp-pad gp-muted">@L("No facility registrations yet.", "لا توجد طلبات تسجيل منشآت بعد.") <a class="gp-textlink" href="@U("/account/facility-register")">@L("Register your first facility", "سجّل منشأتك الأولى")</a></p>
+}
+else
+{
+    <div class="gp-table-wrap">
+    <table class="gp-table gp-table--click" id="gp-apps-table">
+    <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Service", "الخدمة")</th><th>@L("Facility", "المنشأة")</th><th>@L("Submitted", "تاريخ التقديم")</th><th>@L("Status", "الحالة")</th></tr></thead>
+    <tbody>
+    @foreach (var f in list)
+    {
+        <tr data-href="@U("/account/facility")?id=@f.Id" data-status="@Filter(f.ApprovalStatus)">
+        <td class="gp-ref">@ApplicantUi.Reference(f.Id)</td>
+        <td>@L("Facility registration", "تسجيل منشأة")</td>
+        <td>@Name(f)</td>
+        <td>@ApplicantUi.Date(f.SubmittedAt, isAr)</td>
+        <td><span class="@ApplicantUi.StatusPill(f.ApprovalStatus)">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span></td>
+        </tr>
+    }
+    </tbody>
+    </table>
+    </div>
+}
+</div>
+</div>

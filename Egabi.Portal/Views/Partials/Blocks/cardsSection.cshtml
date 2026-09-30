@@ -1,0 +1,43 @@
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var c = Model.Content;
+    var cards = c.Value<BlockListModel>("cards");
+    var intro = c.Value<string>("intro");
+}
+<div class="gp-wrap gp-section">
+    @if (!string.IsNullOrWhiteSpace(c.Value<string>("title")))
+    {
+        <h2 class="gp-h2">@(c.Value<string>("title"))</h2>
+    }
+    @if (!string.IsNullOrWhiteSpace(intro))
+    {
+        <p class="gp-section-intro">@intro</p>
+    }
+    @if (cards != null && cards.Any())
+    {
+        <div class="gp-cards">
+            @foreach (var card in cards)
+            {
+                var cc = card.Content;
+                var link = (cc.Value<IEnumerable<Link>>("link") ?? Enumerable.Empty<Link>()).FirstOrDefault();
+                var text = cc.Value<string>("text");
+                if (link != null)
+                {
+                    <a class="gp-card gp-card--link" href="@link.Url" target="@link.Target">
+                        <span class="gp-card-icon"><i class="bi @(cc.Value<string>("icon"))"></i></span>
+                        <span class="gp-card-body"><strong>@(cc.Value<string>("title"))</strong>@if (!string.IsNullOrWhiteSpace(text)) {<span>@text</span>}</span>
+                    </a>
+                }
+                else
+                {
+                    <div class="gp-card">
+                        <span class="gp-card-icon"><i class="bi @(cc.Value<string>("icon"))"></i></span>
+                        <span class="gp-card-body"><strong>@(cc.Value<string>("title"))</strong>@if (!string.IsNullOrWhiteSpace(text)) {<span>@text</span>}</span>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>

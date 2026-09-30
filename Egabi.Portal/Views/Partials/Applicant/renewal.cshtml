@@ -1,0 +1,35 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Accreditation renewal", "تجديد الاعتماد")</h1><p>@L("Facility and current certificate details are pre-filled. Review them and update what changed.", "بيانات المنشأة والشهادة الحالية معبأة مسبقًا. راجعها وحدّث ما تغيّر.")</p></div></div>
+<form class="gp-panel" data-next="@U("/account/applications")" data-toast-ar="تم تقديم طلب التجديد GHR-2026-004355" data-toast-en="Renewal request GHR-2026-004355 submitted">
+<div class="gp-form-grid">
+<div class="gp-field"><label for="rn-fac">@L("Facility", "المنشأة")</label><select id="rn-fac"><option>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</option></select></div>
+<div class="gp-field"><label for="rn-cert">@L("Current certificate no.", "رقم الشهادة الحالية")</label><input id="rn-cert" readonly="" type="text" value="GAHAR-PHC-2024-0318"/></div>
+<div class="gp-field"><label for="rn-exp">@L("Certificate expiry", "تاريخ انتهاء الشهادة")</label><input id="rn-exp" readonly="" type="date" value="2027-03-14"/></div>
+<div class="gp-field"><label for="rn-month">@L("Preferred renewal visit month", "الشهر المفضل لزيارة التجديد")</label><input id="rn-month" type="month" value="2027-01"/></div>
+</div>
+<fieldset class="gp-fieldset">
+<legend>@L("Any major changes since the last survey?", "هل حدثت تغييرات جوهرية منذ آخر زيارة؟")</legend>
+<label class="gp-check"><input checked="" name="rn-ch" type="radio"/><span>@L("No", "لا")</span></label>
+<label class="gp-check"><input name="rn-ch" type="radio"/><span>@L("Yes — new services, expansion or management change", "نعم — خدمات جديدة أو توسعات أو تغيير في الإدارة")</span></label>
+</fieldset>
+<div class="gp-field gp-field--full"><label for="rn-notes">@L("Describe the changes (if any)", "وصف التغييرات (إن وجدت)")</label><textarea id="rn-notes" rows="3"></textarea></div>
+<h3 class="gp-h3">@L("Updated documents", "المستندات المحدثة")</h3>
+<ul class="gp-uploads">
+<li class="gp-is-done"><i class="bi bi-check-circle-fill"></i><span>@L("Valid operating licence", "ترخيص التشغيل الساري")</span><small>@L("From your documents", "من ملف المستندات")</small></li>
+<li><i class="bi bi-circle"></i><span>@L("Recent self-assessment report", "تقرير التقييم الذاتي الحديث")</span><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Upload", "رفع")</button></li>
+</ul>
+<div class="gp-form-actions">
+<button class="gp-btn gp-btn--primary" type="submit">@L("Submit renewal request", "تقديم طلب التجديد")</button>
+<button class="gp-btn gp-btn--ghost" data-toast-ar="تم حفظ المسودة" data-toast-en="Draft saved" type="button">@L("Save as draft", "حفظ كمسودة")</button>
+</div>
+</form>
+</div>

@@ -1,0 +1,30 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("My transactions and service history", "سجل المعاملات")</h1><p>@L("Everything you've done on the portal, most recent first.", "كل ما قمت به على البوابة، بترتيب زمني.")</p></div>
+<button class="gp-btn gp-btn--outline" data-toast-ar="تم التصدير إلى Excel" data-toast-en="Exported to Excel" type="button"><i class="bi bi-file-earmark-spreadsheet"></i><span>@L("Export", "تصدير")</span></button>
+</div>
+<div class="gp-panel gp-panel--flush">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Date", "التاريخ")</th><th>@L("Transaction", "المعاملة")</th><th>@L("Reference", "المرجع")</th><th>@L("Result", "النتيجة")</th></tr></thead>
+<tbody>
+<tr><td>@L("20 Sep 2026", "20 سبتمبر 2026")</td><td>@L("Submitted self-assessment review", "تقديم طلب مراجعة التقييم الذاتي")</td><td class="gp-ref">GHR-2026-004301</td><td>@L("Under review", "قيد المراجعة")</td></tr>
+<tr><td>@L("17 Sep 2026", "17 سبتمبر 2026")</td><td>@L("Registered facility: Al-Nour Radiology Centre", "تسجيل منشأة: مركز النور للأشعة")</td><td class="gp-ref">GHR-2026-004290</td><td>@L("Documents missing", "استكمال مستندات")</td></tr>
+<tr><td>@L("14 Sep 2026", "14 سبتمبر 2026")</td><td>@L("Paid invoice", "سداد فاتورة")</td><td class="gp-ref">INV-2026-00812</td><td>@L("Done", "تم")</td></tr>
+<tr><td>@L("02 Sep 2026", "02 سبتمبر 2026")</td><td>@L("Submitted accreditation request", "تقديم طلب اعتماد")</td><td class="gp-ref">GHR-2026-004182</td><td>@L("In progress", "جاري")</td></tr>
+<tr><td>@L("18 Aug 2026", "18 أغسطس 2026")</td><td>@L("Received professional registration certificate", "استلام شهادة التسجيل المهني")</td><td class="gp-ref">REG-2026-55012</td><td>@L("Done", "تم")</td></tr>
+<tr><td>@L("05 Aug 2026", "05 أغسطس 2026")</td><td>@L("Account created", "إنشاء الحساب")</td><td>—</td><td>@L("Done", "تم")</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>

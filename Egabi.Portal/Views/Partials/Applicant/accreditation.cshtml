@@ -1,0 +1,41 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("My accreditation", "حالة الاعتماد")</h1><p>@L("Accreditation status for every facility you manage.", "حالة الاعتماد لكل منشأة تديرها.")</p></div></div>
+<div class="gp-acc">
+<div class="gp-panel">
+<div class="gp-acc-head">
+<div><h2 class="gp-h3">@L("Nile Valley Specialized Hospital", "مستشفى وادي النيل التخصصي")</h2><span class="gp-muted">@L("Hospitals programme · Giza", "برنامج المستشفيات · الجيزة")</span></div>
+<span class="gp-pill gp-pill--info">@L("In survey", "قيد التقييم")</span>
+</div>
+<ol class="gp-progress gp-progress--compact">
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Registered", "التسجيل")</em></li>
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Self-assessment", "التقييم الذاتي")</em></li>
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Application", "الطلب")</em></li>
+<li class="gp-is-current"><span>4</span><em>@L("Survey", "الزيارة")</em></li>
+<li><span>5</span><em>@L("Decision", "القرار")</em></li>
+</ol>
+<a class="gp-textlink" href="@U("/account/applications/details")">@L("View request", "عرض الطلب")</a>
+</div>
+<div class="gp-panel gp-panel--gold">
+<div class="gp-acc-head">
+<div><h2 class="gp-h3">@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</h2><span class="gp-muted">@L("Primary care programme · Port Said", "برنامج الرعاية الأولية · بورسعيد")</span></div>
+<span class="gp-pill gp-pill--ok">@L("Accredited", "معتمدة")</span>
+</div>
+<dl class="gp-review">
+<dt>@L("Certificate no.", "رقم الشهادة")</dt><dd class="gp-ref">GAHAR-PHC-2024-0318</dd>
+<dt>@L("Valid until", "صالحة حتى")</dt><dd>@L("14 Mar 2027", "14 مارس 2027")</dd>
+<dt>@L("Compliance score", "نسبة التوافق")</dt><dd>91%</dd>
+</dl>
+<div class="gp-next gp-next--gold"><i class="bi bi-bell"></i><p>@L("The renewal window is open. Apply before 14 Dec 2026 to avoid a gap in accreditation.", "نافذة التجديد مفتوحة. قدّم طلب التجديد قبل 14 ديسمبر 2026 لتجنب انقطاع الاعتماد.")</p></div>
+<a class="gp-btn gp-btn--primary" href="@U("/account/renewal")">@L("Start renewal", "ابدأ التجديد")</a>
+</div>
+</div>
+</div>

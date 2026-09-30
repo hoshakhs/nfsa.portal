@@ -1,0 +1,34 @@
+﻿@using System.Globalization
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "master.cshtml";
+    ViewData["Title"] = Model.Name;
+
+    var date = Model.Value<DateTime>("date");
+    if (date == default) { date = Model.CreateDate; }
+    var category = Model.Value<string>("category");
+    var imageUrl = Model.Value<MediaWithCrops>("image")?.Url();
+    var body = Model.Value<IHtmlEncodedString>("body")?.ToHtmlString();
+}
+@await Html.PartialAsync("~/Views/Partials/_PageHead.cshtml", Model)
+<div class="gp-wrap gp-section">
+    <article class="gp-article">
+        <div class="gp-article-meta">
+            <time>@date.ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)</time>
+            @if (!string.IsNullOrWhiteSpace(category))
+            {
+                <span class="gp-tag">@category</span>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(imageUrl))
+        {
+            <img class="gp-article-image" src="@imageUrl" alt="@Model.Name" />
+        }
+        @if (!string.IsNullOrWhiteSpace(body))
+        {
+            <div class="gp-richtext">@Html.Raw(body)</div>
+        }
+    </article>
+</div>

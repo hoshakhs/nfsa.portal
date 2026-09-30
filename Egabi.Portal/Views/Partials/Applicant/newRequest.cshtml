@@ -1,0 +1,192 @@
+@using System.Globalization
+@using System.Text.Json
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // New service request — the Service Catalogue of the egabi Platform.
+    //   /account/new-request            → published services (from the platform's Service Catalogue)
+    //   /account/new-request?code=XYZ   → the service's details (conditions, documents, steps)
+    //   /account/new-request?code=XYZ&start=1 → the service's form (Form Builder), for one of my facilities
+    //   /account/new-request?ref=SRV-…   → correct and resubmit a returned request (_resubmitRequest.cshtml)
+    // Nothing here is specific to a service: a new service appears when the admin publishes it.
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    string T(string? en, string? ar) => (isAr ? (string.IsNullOrWhiteSpace(ar) ? en : ar) : (string.IsNullOrWhiteSpace(en) ? ar : en)) ?? "";
+    string Icon(string? icon) => string.IsNullOrWhiteSpace(icon) ? "bi-file-earmark-text" : icon;
+    string Fee(decimal? fee) => fee is > 0 ? fee.Value.ToString("#,0.##", CultureInfo.InvariantCulture) + (isAr ? " ج.م" : " EGP") : L("Free", "بدون رسوم");
+
+    var me = ApplicantAuth.Current(Context)!;
+    var code = Context.Request.Query["code"].ToString().Trim();
+}
+
+@if (!string.IsNullOrEmpty(Context.Request.Query["ref"].ToString()))
+{
+    @await Html.PartialAsync("~/Views/Partials/Applicant/_resubmitRequest.cshtml")
+    return;
+}
+
+<div class="gp-screen">
+    @if (string.IsNullOrEmpty(code))
+    {
+
+    // ───────────── Catalogue ─────────────
+    var list = await Api.GetServicesAsync();
+    var services = list.Data ?? new List<ServiceSummary>();
+    var groups = services.GroupBy(s => T(s.CategoryEn, s.CategoryAr)).ToList();
+
+    <div class="gp-phead"><div><h1>@L("New service request", "طلب خدمة جديد")</h1><p>@L("Choose the service you need. You'll fill its form for one of your facilities.", "اختر الخدمة التي تحتاجها، ثم املأ نموذجها لإحدى منشآتك.")</p></div></div>
+
+    @if (!list.Ok)
+    {
+        <div class="gp-form-error">@L("Services could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل الخدمات حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+    }
+    else if (services.Count == 0)
+    {
+        <div class="gp-panel"><p class="gp-muted">@L("No services are available yet.", "لا توجد خدمات متاحة حاليًا.")</p></div>
+    }
+
+    foreach (var g in groups)
+    {
+        if (!string.IsNullOrEmpty(g.Key))
+        {
+            <h2 class="gp-h3 gp-svc-group">@g.Key</h2>
+        }
+        <div class="gp-svc-list">
+        @foreach (var s in g)
+        {
+            <a class="gp-svc-item" href="@U("/account/new-request")?code=@Uri.EscapeDataString(s.Code)">
+            <span class="gp-svc-icon"><i class="bi @Icon(s.Icon)"></i></span>
+            <span class="gp-svc-body">
+            <span class="gp-svc-name">@T(s.NameEn, s.NameAr)</span>
+            @if (!string.IsNullOrWhiteSpace(T(s.DescriptionEn, s.DescriptionAr)))
+            {
+                <span class="gp-svc-desc">@T(s.DescriptionEn, s.DescriptionAr)</span>
+            }
+            <span class="gp-svc-meta">@Fee(s.FeeAmount)@(s.ProcessingDays is > 0 ? " · " + L($"{s.ProcessingDays} days", $"{s.ProcessingDays} يومًا") : "")</span>
+            </span>
+            <i class="bi @(isAr ? "bi-chevron-left" : "bi-chevron-right") gp-svc-go"></i>
+            </a>
+        }
+        </div>
+    }
+}
+else
+{
+    // ───────────── One service: its form ─────────────
+    var detail = await Api.GetServiceAsync(me.Token, code);
+
+    if (detail.Unauthorized)
+    {
+        // the platform no longer accepts this session — sign out and ask to sign in again
+        await ApplicantAuth.SignOutAsync(Context);
+        <div class="gp-panel gp-center">
+        <h1 class="gp-h3">@L("Your session has ended", "انتهت الجلسة")</h1>
+        <a class="gp-btn gp-btn--primary" href="@U("/account/login")?returnUrl=@Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString)">@L("Sign in again", "سجّل الدخول مرة أخرى")</a>
+        </div>
+    }
+    else if (!detail.Ok || detail.Data == null)
+    {
+        <div class="gp-panel gp-center">
+        <h1 class="gp-h3">@(detail.Status == 404 ? L("Service not available", "الخدمة غير متاحة") : L("The service could not be loaded", "تعذر تحميل الخدمة"))</h1>
+        <p class="gp-muted">@(detail.Status == 404 ? L("It may have been withdrawn.", "ربما تم إيقافها.") : L("Please refresh the page in a moment.", "أعد تحميل الصفحة بعد قليل."))</p>
+        <a class="gp-btn gp-btn--outline" href="@U("/account/new-request")">@L("All services", "كل الخدمات")</a>
+        </div>
+    }
+    else if (Context.Request.Query["start"].ToString() != "1")
+    {
+        // Step 1: the service's details (from the Service Catalogue) → "Start request"
+        var detailsData = new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData)
+        {
+            ["ApplyUrl"] = U("/account/new-request") + "?code=" + Uri.EscapeDataString(detail.Data.Code) + "&start=1",
+            ["BackUrl"] = U("/account/new-request")
+        };
+        @await Html.PartialAsync("~/Views/Partials/Services/_ServiceDetails.cshtml", detail.Data.Summary, detailsData)
+    }
+    else
+    {
+        // Step 2: choose the facility and fill the service's form
+        var s = detail.Data;
+        var facilities = (await Api.GetMyFacilitiesAsync(me.Token)).Data ?? new List<FacilitySummary>();
+        var eligible = facilities.Where(f => !s.RequiresApprovedFacility || ApplicantUi.IsApproved(f.ApprovalStatus)).ToList();
+
+        <div class="gp-phead">
+        <div>
+        <a class="gp-back" href="@U("/account/new-request")?code=@Uri.EscapeDataString(s.Code)"><i class="bi @(isAr ? "bi-arrow-right" : "bi-arrow-left")"></i> @L("Service details", "تفاصيل الخدمة")</a>
+        <h1>@T(s.NameEn, s.NameAr)</h1>
+        @if (!string.IsNullOrWhiteSpace(T(s.DescriptionEn, s.DescriptionAr)))
+        {
+            <p>@T(s.DescriptionEn, s.DescriptionAr)</p>
+        }
+        </div>
+        </div>
+
+        <div class="gp-split gp-split--service">
+        <div class="gp-panel">
+        @Html.AntiForgeryToken()
+        <div class="gp-form-error" data-form-error hidden></div>
+
+        @if (eligible.Count == 0)
+        {
+            <div class="gp-next gp-next--gold"><i class="bi bi-info-circle"></i><div>
+            @(s.RequiresApprovedFacility
+                ? L("This service needs an approved facility, and none of your facilities is approved yet.", "هذه الخدمة تتطلب منشأة معتمدة، ولا توجد لديك منشأة معتمدة بعد.")
+                : L("Register a facility first.", "سجّل منشأة أولًا."))
+            <br /><a class="gp-textlink" href="@U("/account/facility")">@L("My facilities", "منشآتي")</a>
+            </div></div>
+        }
+        else
+        {
+            <h2 class="gp-h3">@L("For which facility?", "لأي منشأة؟")</h2>
+            <div class="gp-choice-list" data-facility-list>
+            @foreach (var f in eligible)
+            {
+                <label class="gp-choice"><input type="radio" name="facilityId" value="@f.Id" checked="@(eligible.Count == 1)" />
+                <span class="gp-choice-box"><i class="bi bi-hospital"></i>
+                <strong>@((isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—")</strong>
+                <small>@ApplicantUi.Reference(f.Id) · @((isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn) ?? "")</small></span></label>
+            }
+            </div>
+            <small class="gp-field-error" data-error-for="facilityId"></small>
+
+            <h2 class="gp-h3">@L("Request details", "بيانات الطلب")</h2>
+            <div id="gp-service-form" class="gp-service-form"
+                 data-code="@s.Code" data-lang="@(isAr ? "ar" : "en")">
+                <p class="gp-muted">@L("Loading the form…", "جارٍ تحميل النموذج…")</p>
+            </div>
+            <script type="application/json" id="gp-service-schema">@Html.Raw(JsonSerializer.Serialize(s.Schema))</script>
+
+            <div class="gp-form-actions">
+            <button class="gp-btn gp-btn--primary" type="button" data-service-submit
+                    data-confirm="@L("Submit this request?", "هل تريد تقديم الطلب؟")">
+                <i class="bi bi-send"></i><span>@L("Submit request", "تقديم الطلب")</span>
+            </button>
+            <a class="gp-btn gp-btn--ghost" href="@U("/account/new-request")">@L("Cancel", "إلغاء")</a>
+            </div>
+
+            <script src="/portal/forms/renderer.js" defer></script>
+            <script src="~/js/portal-services.js" asp-append-version="true" defer></script>
+        }
+        </div>
+
+        <aside class="gp-panel gp-svc-aside">
+        <h2 class="gp-h3">@L("About this service", "عن الخدمة")</h2>
+        <dl>
+        @if (!string.IsNullOrWhiteSpace(T(s.CategoryEn, s.CategoryAr)))
+        {
+            <dt>@L("Category", "التصنيف")</dt><dd>@T(s.CategoryEn, s.CategoryAr)</dd>
+        }
+        <dt>@L("Fee", "الرسوم")</dt><dd>@Fee(s.FeeAmount)</dd>
+        @if (s.ProcessingDays is > 0)
+        {
+            <dt>@L("Processing time", "مدة الإنجاز")</dt><dd>@L($"{s.ProcessingDays} days", $"{s.ProcessingDays} يومًا")</dd>
+        }
+        <dt>@L("Who can apply", "من يمكنه التقديم")</dt><dd>@(s.RequiresApprovedFacility ? L("Approved facilities", "المنشآت المعتمدة") : L("Registered facilities", "المنشآت المسجلة"))</dd>
+        </dl>
+        </aside>
+        </div>
+    }
+}
+</div>

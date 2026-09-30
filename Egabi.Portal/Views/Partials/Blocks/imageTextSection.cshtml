@@ -1,0 +1,29 @@
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var c = Model.Content;
+    var text = c.Value<IHtmlEncodedString>("text")?.ToHtmlString();
+    var imageUrl = c.Value<MediaWithCrops>("image")?.Url();
+    var link = (c.Value<IEnumerable<Link>>("link") ?? Enumerable.Empty<Link>()).FirstOrDefault();
+}
+<div class="gp-wrap gp-section">
+    <div class="gp-imagetext @(string.IsNullOrEmpty(imageUrl) ? "gp-imagetext--noimg" : "")">
+        <div class="gp-imagetext-copy">
+            <h2 class="gp-h2">@(c.Value<string>("title"))</h2>
+            @if (!string.IsNullOrWhiteSpace(text))
+            {
+                <div class="gp-richtext">@Html.Raw(text)</div>
+            }
+            @if (link != null)
+            {
+                <a href="@link.Url" target="@link.Target" class="gp-btn gp-btn--primary">@link.Name</a>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(imageUrl))
+        {
+            <div class="gp-imagetext-media"><img src="@imageUrl" alt="@(c.Value<string>("title"))" /></div>
+        }
+    </div>
+</div>

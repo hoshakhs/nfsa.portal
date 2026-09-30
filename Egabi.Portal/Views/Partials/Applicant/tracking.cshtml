@@ -1,0 +1,43 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Track a request", "تتبع طلب")</h1><p>@L("Enter a reference number to see its current stage and what happens next.", "أدخل رقم الطلب لمعرفة مرحلته الحالية والخطوة التالية.")</p></div></div>
+<form class="gp-trackbar" data-next="@U("/track")" data-track="">
+<div class="gp-inputicon"><i class="bi bi-hash"></i><input aria-label="Reference number" type="text" value="GHR-2026-004182"/></div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Track", "تتبع")</button>
+</form>
+<div class="gp-panel gp-track-result" id="gp-track-result">
+<div class="gp-track-head">
+<div>
+<span class="gp-ref">GHR-2026-004182</span>
+<h2>@L("Healthcare facility accreditation — Nile Valley Specialized Hospital", "اعتماد المنشآت الصحية — مستشفى وادي النيل التخصصي")</h2>
+</div>
+<span class="gp-pill gp-pill--info">@L("Visit scheduled", "زيارة مجدولة")</span>
+</div>
+<ol class="gp-progress">
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Submitted", "تم التقديم")</em><small>@L("02 Sep", "02 سبتمبر")</small></li>
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Document review", "مراجعة المستندات")</em><small>@L("11 Sep", "11 سبتمبر")</small></li>
+<li class="gp-is-done"><span><i class="bi bi-check-lg"></i></span><em>@L("Fee paid", "سداد الرسوم")</em><small>@L("14 Sep", "14 سبتمبر")</small></li>
+<li class="gp-is-current"><span>4</span><em>@L("Survey visit", "زيارة التقييم")</em><small>@L("12 – 13 Oct", "12 – 13 أكتوبر")</small></li>
+<li><span>5</span><em>@L("Decision", "القرار")</em><small>@L("Expected Nov", "متوقع نوفمبر")</small></li>
+</ol>
+<div class="gp-next">
+<i class="bi bi-info-circle"></i>
+<p>@L("Next: the surveyor team visits the facility on 12 and 13 October. Please have policy files and training records ready.", "الخطوة التالية: يزور فريق التقييم المنشأة يومي 12 و13 أكتوبر. يرجى تجهيز ملفات السياسات وسجلات التدريب.")</p>
+</div>
+<h3 class="gp-h3">@L("Request history", "سجل الطلب")</h3>
+<ul class="gp-timeline">
+<li><time>@L("18 Sep 2026, 10:24 am", "18 سبتمبر 2026، 10:24 ص")</time><p>@L("Survey visit scheduled and team lead assigned.", "تم تحديد موعد زيارة التقييم وتعيين رئيس الفريق.")</p></li>
+<li><time>@L("14 Sep 2026, 3:10 pm", "14 سبتمبر 2026، 3:10 م")</time><p>@L("Fee payment received — receipt RCP-2026-11820.", "تم استلام سداد الرسوم — إيصال RCP-2026-11820.")</p></li>
+<li><time>@L("11 Sep 2026, 12:02 pm", "11 سبتمبر 2026، 12:02 م")</time><p>@L("Documents accepted.", "تم قبول المستندات.")</p></li>
+<li><time>@L("02 Sep 2026, 9:15 am", "02 سبتمبر 2026، 9:15 ص")</time><p>@L("Request submitted.", "تم تقديم الطلب.")</p></li>
+</ul>
+</div>
+</div>

@@ -1,0 +1,32 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Medical professional registration", "تسجيل عضو مهن طبية")</h1><p>@L("Your personal details come from your account. Add your professional details and qualifications.", "بياناتك الشخصية معبأة من حسابك. أكمل البيانات المهنية وارفع المؤهلات.")</p></div></div>
+<form class="gp-panel" data-next="@U("/account/applications")" data-toast-ar="تم تقديم طلب التسجيل GHR-2026-004433" data-toast-en="Registration request GHR-2026-004433 submitted">
+<h2 class="gp-h3">@L("Professional details", "البيانات المهنية")</h2>
+<div class="gp-form-grid">
+<div class="gp-field"><label for="mp-prof">@L("Profession", "المهنة")</label><select id="mp-prof"><option>@L("Physician", "طبيب بشري")</option><option>@L("Dentist", "طبيب أسنان")</option><option>@L("Pharmacist", "صيدلي")</option><option>@L("Nurse", "تمريض")</option><option>@L("Physiotherapist", "علاج طبيعي")</option><option>@L("Allied health", "مهن طبية مساعدة")</option></select></div>
+<div class="gp-field"><label for="mp-spec">@L("Specialty", "التخصص")</label><input id="mp-spec" type="text" value="Paediatrics"/></div>
+<div class="gp-field"><label for="mp-deg">@L("Professional grade", "الدرجة المهنية")</label><select id="mp-deg"><option>@L("General practitioner", "ممارس عام")</option><option>@L("Specialist", "أخصائي")</option><option>@L("Consultant", "استشاري")</option></select></div>
+<div class="gp-field"><label for="mp-synd">@L("Syndicate membership no.", "رقم عضوية النقابة")</label><input id="mp-synd" type="text"/></div>
+<div class="gp-field"><label for="mp-lic">@L("Practice licence no.", "رقم ترخيص مزاولة المهنة")</label><input id="mp-lic" type="text"/></div>
+<div class="gp-field"><label for="mp-work">@L("Current workplace", "جهة العمل الحالية")</label><select id="mp-work"><option>@L("Nile Valley Specialized Hospital", "مستشفى وادي النيل التخصصي")</option><option>@L("Other", "أخرى")</option></select></div>
+</div>
+<h2 class="gp-h3">@L("Qualifications", "المؤهلات")</h2>
+<ul class="gp-uploads">
+<li><i class="bi bi-circle"></i><span>@L("Bachelor's degree certificate", "شهادة البكالوريوس")</span><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Upload", "رفع")</button></li>
+<li><i class="bi bi-circle"></i><span>@L("Specialty certificate / master's", "شهادة التخصص / الماجستير")</span><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Upload", "رفع")</button></li>
+<li><i class="bi bi-circle"></i><span>@L("Syndicate card", "كارنيه النقابة")</span><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Upload", "رفع")</button></li>
+<li><i class="bi bi-circle"></i><span>@L("Recent personal photo", "صورة شخصية حديثة")</span><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Upload", "رفع")</button></li>
+</ul>
+<label class="gp-check"><input required="" type="checkbox"/><span>@L("I confirm the information and documents are accurate", "أقر بصحة البيانات والمستندات المقدمة")</span></label>
+<div class="gp-form-actions"><button class="gp-btn gp-btn--primary" type="submit">@L("Submit registration", "تقديم طلب التسجيل")</button></div>
+</form>
+</div>

@@ -1,0 +1,29 @@
+@using Umbraco.Cms.Core.Models.PublishedContent
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<IPublishedContent>
+@{
+    // Breadcrumbs: every parent page from the home page down to the current page.
+    var crumbs = new List<IPublishedContent>();
+    var parent = Model.Parent();
+    while (parent != null)
+    {
+        crumbs.Insert(0, parent);
+        parent = parent.Parent();
+    }
+    var intro = Model.Value<string>("intro");
+}
+<div class="gp-pagehead">
+    <div class="gp-wrap">
+        <nav class="gp-crumbs">
+            @foreach (var crumb in crumbs)
+            {
+                <a href="@crumb.Url()">@crumb.Name</a><i class="bi bi-chevron-right"></i>
+            }
+            <span>@Model.Name</span>
+        </nav>
+        <h1>@Model.Name</h1>
+        @if (!string.IsNullOrWhiteSpace(intro))
+        {
+            <p>@intro</p>
+        }
+    </div>
+</div>

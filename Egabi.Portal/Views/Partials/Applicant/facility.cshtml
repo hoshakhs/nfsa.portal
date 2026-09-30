@@ -1,0 +1,270 @@
+@using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // Facility page — real data from the egabi Platform API.
+    //   /account/facility?id=123 → one facility: approval stages, documents (upload), submit for approval
+    //   /account/facility        → list of my facilities
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    string Or(string? v) => string.IsNullOrWhiteSpace(v) ? "—" : v;
+
+    var me = ApplicantAuth.Current(Context)!;
+    int.TryParse(Context.Request.Query["id"].ToString(), out var id);
+
+    ApiResult<FacilityDetails>? detail = id > 0 ? await Api.GetFacilityAsync(me.Token, id) : null;
+    ApiResult<List<FacilitySummary>>? mine = id > 0 ? null : await Api.GetMyFacilitiesAsync(me.Token);
+}
+
+<div class="gp-screen">
+@if (detail == null)
+{
+    // ───────────── List of my facilities ─────────────
+    var list = mine?.Data ?? new List<FacilitySummary>();
+    <div class="gp-phead">
+    <div><h1>@L("My facilities", "منشآتي")</h1><p>@L("Open a facility to upload its documents and follow its approval.", "افتح المنشأة لرفع مستنداتها ومتابعة اعتمادها.")</p></div>
+    <a class="gp-btn gp-btn--primary" href="@U("/account/facility-register")"><i class="bi bi-plus-lg"></i><span>@L("Register a facility", "تسجيل منشأة")</span></a>
+    </div>
+    @if (mine is { Ok: false })
+    {
+        <div class="gp-form-error">@L("Your facilities could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل منشآتك حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+    }
+    <div class="gp-panel gp-panel--flush">
+    @if (list.Count == 0)
+    {
+        <p class="gp-pad gp-muted">@L("You haven't registered any facility yet.", "لم تسجل أي منشأة بعد.")</p>
+    }
+    else
+    {
+        <div class="gp-table-wrap">
+        <table class="gp-table gp-table--click">
+        <thead><tr><th>@L("Reference", "رقم المرجع")</th><th>@L("Facility", "المنشأة")</th><th>@L("Sector", "القطاع")</th><th>@L("Status", "الحالة")</th></tr></thead>
+        <tbody>
+        @foreach (var f in list)
+        {
+            <tr data-href="@U("/account/facility")?id=@f.Id">
+            <td class="gp-ref">@ApplicantUi.Reference(f.Id)</td>
+            <td>@((isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—")</td>
+            <td>@((isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn) ?? "")</td>
+            <td><span class="@ApplicantUi.StatusPill(f.ApprovalStatus)">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span></td>
+            </tr>
+        }
+        </tbody>
+        </table>
+        </div>
+    }
+    </div>
+}
+else if (!detail.Ok || detail.Data == null)
+{
+    // ───────────── Not found / error ─────────────
+    <div class="gp-panel gp-center">
+    <h1 class="gp-h3">@(detail.Status == 404 ? L("Facility not found", "المنشأة غير موجودة") : L("The facility could not be loaded", "تعذر تحميل بيانات المنشأة"))</h1>
+    <p class="gp-muted">@(detail.Status == 404 ? L("It doesn't exist or it isn't registered under your account.", "غير موجودة أو ليست مسجلة باسم حسابك.") : L("Please refresh the page in a moment.", "أعد تحميل الصفحة بعد قليل."))</p>
+    <a class="gp-btn gp-btn--outline" href="@U("/account/facility")">@L("My facilities", "منشآتي")</a>
+    </div>
+}
+else
+{
+    // ───────────── One facility ─────────────
+    var f = detail.Data;
+    var name = (isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—";
+    var sector = isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn;
+    var type = isAr ? f.FacilityTypeNameAr ?? f.FacilityTypeNameEn : f.FacilityTypeNameEn;
+    var returnReason = f.Stages.Where(s => s.State == "Rejected").Select(s => s.ReturnReason).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
+    var missing = f.RequiredDocuments.Where(r => r.IsRequired && !r.IsUploaded).ToList();
+    var submitted = f.SubmittedAt != null && !ApplicantUi.IsDraft(f.ApprovalStatus);
+    var extraDocs = f.Documents.Where(d => !f.RequiredDocuments.Any(r => r.Code == d.Code)).ToList();
+
+    @Html.AntiForgeryToken()
+
+    <div class="gp-phead">
+    <div>
+    <span class="gp-ref">@ApplicantUi.Reference(f.Id)</span>
+    <h1>@name</h1>
+    <p>@string.Join(" · ", new[] { sector, type, f.Governorate }.Where(x => !string.IsNullOrWhiteSpace(x)))</p>
+    </div>
+    <span class="@ApplicantUi.StatusPill(f.ApprovalStatus) gp-pill--lg">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span>
+    </div>
+
+    @if (ApplicantUi.IsReturned(f.ApprovalStatus))
+    {
+        <div class="gp-next gp-next--gold"><i class="bi bi-arrow-counterclockwise"></i><div><strong>@L("Returned for completion", "أُعيدت للاستكمال")</strong><br />@Or(returnReason)<br /><span class="gp-muted">@L("Update the documents below, then submit again.", "حدّث المستندات أدناه ثم أعد التقديم.")</span></div></div>
+    }
+    else if (ApplicantUi.IsDraft(f.ApprovalStatus))
+    {
+        <div class="gp-next"><i class="bi bi-info-circle"></i><div>@L("Step 2 of 3: upload the required documents. Step 3: submit the facility for approval.", "الخطوة 2 من 3: ارفع المستندات المطلوبة. الخطوة 3: قدّم المنشأة للاعتماد.")</div></div>
+    }
+    else if (ApplicantUi.IsApproved(f.ApprovalStatus))
+    {
+        <div class="gp-next"><i class="bi bi-patch-check"></i><div>@L("Your facility is approved.", "تم اعتماد منشأتك.")</div></div>
+    }
+
+    <div class="gp-panel">
+    <h2 class="gp-h3">@L("Approval stages", "مراحل الاعتماد")</h2>
+    <ol class="gp-progress gp-progress--auto">
+    <li class="@(submitted ? "gp-is-done" : "gp-is-current")"><span>@(submitted ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("1"))</span><em>@L("Submitted", "تقديم الطلب")</em><small>@ApplicantUi.Date(f.SubmittedAt, isAr)</small></li>
+    @foreach (var s in f.Stages)
+    {
+        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" => "gp-is-rejected", _ => "" };
+        var mark = s.State switch
+        {
+            "Done" => Html.Raw("<i class=\"bi bi-check-lg\"></i>"),
+            "Rejected" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
+            _ => Html.Raw((s.Level + 1).ToString())
+        };
+        var stateText = s.State switch
+        {
+            "Done" => ApplicantUi.Date(s.Date, isAr),
+            "Current" => L("In progress", "جارية"),
+            "Rejected" => L("Returned", "مُعادة"),
+            _ => L("Waiting", "في الانتظار")
+        };
+        <li class="@cls"><span>@mark</span><em>@s.LabelEn</em><small>@stateText</small></li>
+    }
+    </ol>
+    </div>
+
+    <div class="gp-split">
+    <div class="gp-panel">
+    <div class="gp-section-head">
+    <h2 class="gp-h3">@L("Documents", "المستندات")</h2>
+    @if (missing.Count > 0)
+    {
+        <span class="gp-pill gp-pill--warn">@L($"{missing.Count} required missing", $"{missing.Count} مطلوب لم يُرفع")</span>
+    }
+    </div>
+    @if (f.CanUploadDocuments)
+    {
+        <p class="gp-hint">@L("PDF, JPG or PNG — up to 10 MB each.", "PDF أو JPG أو PNG — حتى 10 ميجابايت لكل ملف.")</p>
+    }
+    @if (f.RequiredDocuments.Count == 0 && f.Documents.Count == 0)
+    {
+        <p class="gp-muted">@L("No documents are required for this sector.", "لا توجد مستندات مطلوبة لهذا القطاع.")</p>
+    }
+    <ul class="gp-uploads">
+    @foreach (var r in f.RequiredDocuments)
+    {
+        var doc = f.Documents.Where(d => d.Code == r.Code).OrderByDescending(d => d.UploadedDate).FirstOrDefault();
+        <li class="@(doc != null ? "gp-is-done" : "")" data-doc-row>
+        <i class="bi @(doc != null ? "bi-check-circle-fill" : "bi-file-earmark-arrow-up")"></i>
+        <div>
+        <strong>@(isAr ? r.NameAr : r.NameEn)</strong>
+        @if (r.IsRequired) { <span class="gp-req">*</span> }
+        <br />
+        @if (doc != null)
+        {
+            <small>@doc.FileName · @ApplicantUi.Date(doc.UploadedDate, isAr)</small>
+            <span class="@ApplicantUi.VerificationPill(doc.VerificationStatus)">@ApplicantUi.VerificationLabel(doc.VerificationStatus, isAr)</span>
+        }
+        else
+        {
+            <small>@(r.IsRequired ? L("Required — not uploaded yet", "مطلوب — لم يُرفع بعد") : L("Optional", "اختياري"))</small>
+        }
+        <small class="gp-field-error" data-doc-error></small>
+        </div>
+        @if (f.CanUploadDocuments)
+        {
+            <label class="gp-btn gp-btn--sm gp-btn--outline gp-upload-btn">
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-doc-upload="/portal/api/facilities/@f.Id/documents" data-code="@r.Code" />
+            <span>@(doc != null ? L("Replace", "استبدال") : L("Upload", "رفع"))</span>
+            </label>
+        }
+        else
+        {
+            <span></span>
+        }
+        </li>
+    }
+    @foreach (var d in extraDocs)
+    {
+        <li class="gp-is-done">
+        <i class="bi bi-check-circle-fill"></i>
+        <div><strong>@Or(d.Label)</strong><br /><small>@d.FileName · @ApplicantUi.Date(d.UploadedDate, isAr)</small> <span class="@ApplicantUi.VerificationPill(d.VerificationStatus)">@ApplicantUi.VerificationLabel(d.VerificationStatus, isAr)</span></div>
+        <span></span>
+        </li>
+    }
+    </ul>
+
+    @if (f.CanSubmit)
+    {
+        <div class="gp-form-error" data-form-error hidden></div>
+        <div class="gp-form-actions">
+        <button class="gp-btn gp-btn--primary" type="button"
+                data-api-post="/portal/api/facilities/@f.Id/submit"
+                data-confirm="@L("Submit this facility for approval? You can't change it while it is under review.", "هل تريد تقديم المنشأة للاعتماد؟ لا يمكن تعديلها أثناء المراجعة.")"
+                disabled="@(missing.Count > 0 ? "disabled" : null)">
+            <i class="bi bi-send"></i><span>@(ApplicantUi.IsReturned(f.ApprovalStatus) ? L("Resubmit for approval", "إعادة التقديم للاعتماد") : L("Submit for approval", "تقديم للاعتماد"))</span>
+        </button>
+        @if (missing.Count > 0)
+        {
+            <span class="gp-muted">@L("Upload all required documents first.", "ارفع جميع المستندات المطلوبة أولًا.")</span>
+        }
+        </div>
+    }
+    </div>
+
+    <div class="gp-stack">
+    <div class="gp-panel">
+    <h2 class="gp-h3">@L("Facility details", "بيانات المنشأة")</h2>
+    <dl class="gp-review">
+    <dt>@L("Name (English)", "الاسم بالإنجليزية")</dt><dd>@Or(f.FacilityName)</dd>
+    <dt>@L("Name (Arabic)", "الاسم بالعربية")</dt><dd>@Or(f.FacilityNameLocal)</dd>
+    <dt>@L("Trade name", "الاسم التجاري")</dt><dd>@Or(f.TradeName)</dd>
+    <dt>@L("Sector", "القطاع")</dt><dd>@Or(sector)</dd>
+    <dt>@L("Facility type", "نوع المنشأة")</dt><dd>@Or(type)</dd>
+    <dt>@L("Address", "العنوان")</dt><dd>@Or(string.Join("، ", new[] { f.Street, f.District, f.AdministrativeArea, f.Governorate }.Where(x => !string.IsNullOrWhiteSpace(x))))</dd>
+    <dt>@L("Submitted on", "تاريخ التقديم")</dt><dd>@ApplicantUi.Date(f.SubmittedAt, isAr)</dd>
+    </dl>
+    </div>
+    @if (f.CustomFields is { Count: > 0 })
+    {
+        // Custom fields added in the platform's Form Config
+        <div class="gp-panel">
+        <h2 class="gp-h3">@L("Additional information", "بيانات إضافية")</h2>
+        <dl class="gp-review">
+        @foreach (var c in f.CustomFields)
+        {
+            var label = isAr && !string.IsNullOrWhiteSpace(c.LabelAr) ? c.LabelAr : c.Label;
+            var value = c.FieldType switch
+            {
+                "Checkbox" => c.Value == "true" ? L("Yes", "نعم") : L("No", "لا"),
+                "Date" when DateTime.TryParse(c.Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) => ApplicantUi.Date(d, isAr),
+                _ => Or(c.Value)
+            };
+            <dt>@label</dt><dd>@value</dd>
+        }
+        </dl>
+        </div>
+    }
+    @if (f.Owners.Count > 0)
+    {
+        <div class="gp-panel">
+        <h2 class="gp-h3">@L("Owners", "الملاك")</h2>
+        <ul class="gp-rows">
+        @foreach (var o in f.Owners)
+        {
+            <li><span>@((isAr && !string.IsNullOrWhiteSpace(o.OwnerNameAr) ? o.OwnerNameAr : o.OwnerName) ?? "—")</span><span class="gp-pill gp-pill--muted">@Or(o.Role)@(o.OwnershipPercentage != null ? $" · {o.OwnershipPercentage:0.##}%" : "")</span></li>
+        }
+        </ul>
+        </div>
+    }
+    @if (f.Contacts.Count > 0)
+    {
+        <div class="gp-panel">
+        <h2 class="gp-h3">@L("Contact persons", "مسؤولو التواصل")</h2>
+        <ul class="gp-rows">
+        @foreach (var c in f.Contacts)
+        {
+            <li><span>@Or(c.ContactName)<br /><small class="gp-muted">@Or(c.Mobile ?? c.PhoneNumber)</small></span>@if (c.IsPrimary) {<span class="gp-pill gp-pill--muted">@L("Primary", "رئيسي")</span>}</li>
+        }
+        </ul>
+        </div>
+    }
+    </div>
+    </div>
+}
+</div>

@@ -1,0 +1,33 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Technical support requests (SAT / SAP)", "طلبات الدعم الفني (SAT / SAP)")</h1><p>@L("Get GAHAR support applying the standards before your survey.", "احصل على دعم الهيئة في تطبيق المعايير قبل زيارة التقييم.")</p></div></div>
+<form class="gp-panel" data-toast-ar="تم تقديم طلب الدعم TS-2026-00467" data-toast-en="Support request TS-2026-00467 submitted">
+<div class="gp-choice-row">
+<label class="gp-choice"><input checked="" name="ts-type" type="radio"/><span class="gp-choice-box"><i class="bi bi-clipboard-data"></i><strong>@L("SAT — Self-assessment review", "SAT — مراجعة التقييم الذاتي")</strong><small>@L("An expert reviews your self-assessment results and suggests improvement priorities.", "يراجع خبير نتائج تقييمك الذاتي ويقترح أولويات التحسين.")</small></span></label>
+<label class="gp-choice"><input name="ts-type" type="radio"/><span class="gp-choice-box"><i class="bi bi-people"></i><strong>@L("SAP — Support programme", "SAP — برنامج الدعم")</strong><small>@L("A structured programme of visits and workshops until the facility is ready.", "برنامج دعم متكامل بزيارات وورش عمل حتى جاهزية المنشأة.")</small></span></label>
+</div>
+<div class="gp-form-grid">
+<div class="gp-field"><label for="ts-fac">@L("Facility", "المنشأة")</label><select id="ts-fac"><option>@L("Nile Valley Specialized Hospital", "مستشفى وادي النيل التخصصي")</option><option>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</option></select></div>
+<div class="gp-field"><label for="ts-topic">@L("Area", "المجال")</label><select id="ts-topic"><option>@L("Interpreting the standards", "تفسير المعايير")</option><option>@L("Infection control", "مكافحة العدوى")</option><option>@L("Facility safety", "سلامة المنشأة")</option><option>@L("Medication management", "إدارة الأدوية")</option></select></div>
+<div class="gp-field"><label for="ts-mode">@L("Support format", "طريقة الدعم")</label><select id="ts-mode"><option>@L("Online meeting", "اجتماع عبر الإنترنت")</option><option>@L("On-site visit", "زيارة ميدانية")</option></select></div>
+<div class="gp-field"><label for="ts-date">@L("Preferred date", "التاريخ المفضل")</label><input id="ts-date" type="date" value="2026-10-06"/></div>
+<div class="gp-field gp-field--full"><label for="ts-desc">@L("Describe what you need", "صف ما تحتاجه")</label><textarea id="ts-desc" rows="3"></textarea></div>
+</div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Send support request", "إرسال طلب الدعم")</button>
+</form>
+<div class="gp-panel">
+<h2 class="gp-h3">@L("Previous requests", "طلبات سابقة")</h2>
+<ul class="gp-rows">
+<li><span class="gp-ref">TS-2026-00311</span><span>@L("SAT — Self-assessment review · Nile Valley", "SAT — مراجعة التقييم الذاتي · وادي النيل")</span><span class="gp-pill gp-pill--ok">@L("Completed", "مكتمل")</span></li>
+<li><span class="gp-ref">TS-2026-00402</span><span>@L("SAP — Support programme · Al-Salam", "SAP — برنامج الدعم · السلام")</span><span class="gp-pill">@L("Under review", "قيد المراجعة")</span></li>
+</ul>
+</div>
+</div>

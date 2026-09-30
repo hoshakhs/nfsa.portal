@@ -1,0 +1,29 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var c = Model.Content;
+    var items = c.Value<BlockListModel>("items");
+    var intro = c.Value<string>("intro");
+}
+<div class="gp-wrap gp-section">
+    @if (!string.IsNullOrWhiteSpace(c.Value<string>("title")))
+    {
+        <h2 class="gp-h2">@(c.Value<string>("title"))</h2>
+    }
+    @if (!string.IsNullOrWhiteSpace(intro))
+    {
+        <p class="gp-section-intro">@intro</p>
+    }
+    @if (items != null && items.Any())
+    {
+        <div class="gp-contact-ch gp-contact-grid">
+            @foreach (var item in items)
+            {
+                <div>
+                    <i class="bi @(item.Content.Value<string>("icon"))"></i>
+                    <div><strong>@(item.Content.Value<string>("label"))</strong><span>@(item.Content.Value<string>("value"))</span></div>
+                </div>
+            }
+        </div>
+    }
+</div>

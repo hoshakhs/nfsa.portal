@@ -1,0 +1,34 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Create account — real, against the egabi Platform API (Controllers/PortalApiController.cs → Register)
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-wrap gp-section gp-narrow">
+<h1 class="gp-h1">@L("Create an applicant account", "إنشاء حساب متعامل")</h1>
+<p class="gp-muted">@L("One account lets you register and follow all your facilities.", "حساب واحد يمكّنك من تسجيل ومتابعة جميع منشآتك.")</p>
+<form class="gp-panel" data-api="/portal/api/account/register" novalidate>
+@Html.AntiForgeryToken()
+<div class="gp-form-error" data-form-error hidden></div>
+<div class="gp-form-grid">
+<div class="gp-field"><label for="r-name">@L("Full name in English (as on national ID)", "الاسم الكامل بالإنجليزية")</label><input id="r-name" name="fullName" type="text" maxlength="200" required /><small class="gp-field-error" data-error-for="fullName"></small></div>
+<div class="gp-field"><label for="r-name-ar">@L("Full name in Arabic", "الاسم الكامل بالعربية (كما في بطاقة الرقم القومي)")</label><input id="r-name-ar" name="fullNameAr" type="text" maxlength="200" dir="rtl" /><small class="gp-field-error" data-error-for="fullNameAr"></small></div>
+<div class="gp-field"><label for="r-nid">@L("National ID", "الرقم القومي")</label><input id="r-nid" name="nationalId" inputmode="numeric" maxlength="14" required type="text" /><small class="gp-hint">@L("14 digits", "14 رقمًا")</small><small class="gp-field-error" data-error-for="nationalId"></small></div>
+<div class="gp-field"><label for="r-mob">@L("Mobile number", "رقم المحمول")</label><input id="r-mob" name="mobile" placeholder="01XXXXXXXXX" maxlength="20" required type="tel" /><small class="gp-field-error" data-error-for="mobile"></small></div>
+<div class="gp-field gp-field--full"><label for="r-mail">@L("Email", "البريد الإلكتروني")</label><input id="r-mail" name="email" required type="email" maxlength="256" autocomplete="email" /><small class="gp-field-error" data-error-for="email"></small></div>
+<div class="gp-field"><label for="r-pw">@L("Password", "كلمة المرور")</label><input id="r-pw" name="password" required type="password" autocomplete="new-password" /><small class="gp-hint">@L("At least 6 characters, with a capital letter, a small letter, a number and a symbol.", "6 أحرف على الأقل، منها حرف كبير وحرف صغير ورقم ورمز.")</small><small class="gp-field-error" data-error-for="password"></small></div>
+<div class="gp-field"><label for="r-pw2">@L("Confirm password", "تأكيد كلمة المرور")</label><input id="r-pw2" name="confirmPassword" required type="password" autocomplete="new-password" /><small class="gp-field-error" data-error-for="confirmPassword"></small></div>
+</div>
+<label class="gp-check"><input name="acceptTerms" type="checkbox" data-type="bool" /><span>@L("I agree to the terms of use and privacy policy", "أوافق على شروط الاستخدام وسياسة الخصوصية")</span></label>
+<small class="gp-field-error" data-error-for="acceptTerms"></small>
+<div class="gp-form-actions">
+<button class="gp-btn gp-btn--primary" type="submit">@L("Create account", "إنشاء الحساب")</button>
+<span class="gp-muted"><span>@L("Already registered?", "لديك حساب؟")</span> <a href="@U("/account/login")">@L("Sign in", "سجّل الدخول")</a></span>
+</div>
+</form>
+</div>
+</div>

@@ -1,0 +1,12 @@
+﻿@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "master.cshtml";
+    ViewData["Title"] = Model.Name;
+    var sections = Model.Value<BlockListModel>("sections");
+}
+@await Html.PartialAsync("~/Views/Partials/_PageHead.cshtml", Model)
+@if (sections != null)
+{
+    @await Html.PartialAsync("~/Views/Partials/Blocks/_Sections.cshtml", sections)
+}

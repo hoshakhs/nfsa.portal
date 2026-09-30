@@ -1,0 +1,51 @@
+@using System.Globalization
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var c = Model.Content;
+    string S(string alias) => c.Value<string>(alias) ?? "";
+
+    var prefix = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ? "" : "/en";
+    var chips = c.Value<IEnumerable<Link>>("chips") ?? Enumerable.Empty<Link>();
+    var footLink = (c.Value<IEnumerable<Link>>("trackFootLink") ?? Enumerable.Empty<Link>()).FirstOrDefault();
+}
+<section class="gp-hero">
+    <div class="gp-wrap gp-hero-in">
+        <div class="gp-hero-copy">
+            <h1 class="gp-hero-title">@S("title")</h1>
+            <p class="gp-hero-lead">@S("lead")</p>
+
+            <form class="gp-hero-search" method="get" action="@(prefix)/services">
+                <i class="bi bi-search"></i>
+                <input type="search" name="q" aria-label="@S("searchPlaceholder")" placeholder="@S("searchPlaceholder")" />
+                <button type="submit" class="gp-btn gp-btn--gold">@S("searchButton")</button>
+            </form>
+
+            @if (chips.Any())
+            {
+                <div class="gp-hero-chips">
+                    <span class="gp-hero-chips-label">@S("chipsLabel")</span>
+                    @foreach (var chip in chips)
+                    {
+                        <a href="@chip.Url" target="@chip.Target" class="gp-chip">@chip.Name</a>
+                    }
+                </div>
+            }
+        </div>
+
+        <aside class="gp-track-card">
+            <h2>@S("trackTitle")</h2>
+            <p>@S("trackText")</p>
+            <form method="get" action="@(prefix)/track">
+                <label for="gp-track-home">@S("trackLabel")</label>
+                <input id="gp-track-home" name="reference" type="text" placeholder="GHR-2026-000000" required />
+                <button type="submit" class="gp-btn gp-btn--primary gp-btn--block">@S("trackButton")</button>
+            </form>
+            @if (footLink != null)
+            {
+                <div class="gp-track-card-foot"><span>@S("trackFootText")</span> <a href="@footLink.Url" target="@footLink.Target">@footLink.Name</a></div>
+            }
+        </aside>
+    </div>
+</section>

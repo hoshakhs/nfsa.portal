@@ -1,0 +1,170 @@
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using System.Globalization
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@{
+    Layout = null;
+
+    // Everything in the header and footer comes from the Home page ("Site settings" tab) in the current language.
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    var site = Model?.Root();
+
+    string S(string alias) => site?.Value<string>(alias) ?? "";
+    IEnumerable<Link> Links(string alias) => site?.Value<IEnumerable<Link>>(alias) ?? Enumerable.Empty<Link>();
+
+    var logoUrl = site?.Value<MediaWithCrops>("logo")?.Url();
+    if (string.IsNullOrEmpty(logoUrl)) { logoUrl = "/images/gahar-logo.png"; }
+
+    var homeUrl = site?.Url() ?? "/";
+    var trackLink = Links("trackLink").FirstOrDefault();
+    var signInLink = Links("signInLink").FirstOrDefault();
+    var registerLink = Links("registerLink").FirstOrDefault();
+    var footerColumns = site?.Value<BlockListModel>("footerColumns");
+
+    // Language switch: same page in the other language, or the other language's home page.
+    var otherCulture = isAr ? "en-US" : "ar-EG";
+    var switchUrl = Model?.Url(culture: otherCulture);
+    if (string.IsNullOrEmpty(switchUrl) || switchUrl == "#") { switchUrl = isAr ? "/en/" : "/"; }
+
+    // Highlights the menu item of the current section.
+    var path = (Context.Request.Path.Value ?? "/").TrimEnd('/');
+    var home = homeUrl.TrimEnd('/');
+    string Current(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) { return ""; }
+        var u = url.TrimEnd('/');
+        var hit = u == home ? path == home : (path == u || path.StartsWith(u + "/", StringComparison.OrdinalIgnoreCase));
+        return hit ? "gp-is-current" : "";
+    }
+
+    // Signed-in applicant (real session — see Services/Applicant/ApplicantAuth.cs).
+    var applicant = Egabi.Portal.Services.Applicant.ApplicantAuth.Current(Context);
+    var isApplicant = applicant != null;
+    var bodyClass = ViewData["BodyClass"] as string;
+    string U(string p) => (isAr ? "" : "/en") + p;
+
+    var title = ViewData["Title"] as string;
+    var pageTitle = string.IsNullOrEmpty(title) ? S("brandSub") : title + " | " + S("brandSub");
+}
+<!DOCTYPE html>
+<html lang="@(isAr ? "ar" : "en")" dir="@(isAr ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#006174" />
+    <title>@pageTitle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/gahar-portal.css" asp-append-version="true" />
+    <link rel="alternate" hreflang="@(isAr ? "en" : "ar")" href="@switchUrl" />
+</head>
+<body class="gp-body @bodyClass @(isApplicant ? "gp-logged-in" : "")">
+
+    <a class="gp-skip" href="#gp-main">@(isAr ? "انتقل إلى المحتوى" : "Skip to content")</a>
+
+    <div class="gp-topbar">
+        <div class="gp-wrap gp-topbar-in">
+            <span class="gp-topbar-note"><i class="bi bi-shield-check"></i><span>@S("topbarNote")</span></span>
+            <div class="gp-topbar-actions">
+                <span class="gp-topbar-hours"><i class="bi bi-clock"></i><span>@S("workingHours")</span></span>
+                <a class="gp-lang" href="@switchUrl" lang="@(isAr ? "en" : "ar")"><i class="bi bi-translate"></i><span>@(isAr ? "English" : "العربية")</span></a>
+            </div>
+        </div>
+    </div>
+
+    <header class="gp-header">
+        <div class="gp-wrap gp-header-in">
+            <a href="@homeUrl" class="gp-brand">
+                <img src="@logoUrl" alt="@S("brandName")" class="gp-brand-logo" />
+                <span class="gp-brand-text">
+                    <span class="gp-brand-name">@S("brandName")</span>
+                    <span class="gp-brand-sub">@S("brandSub")</span>
+                </span>
+            </a>
+
+            <button type="button" class="gp-menu-btn" data-action="menu" aria-label="@(isAr ? "القائمة" : "Menu")"><i class="bi bi-list"></i></button>
+
+            <nav class="gp-nav" aria-label="@(isAr ? "القائمة الرئيسية" : "Main")">
+                @foreach (var link in Links("mainMenu"))
+                {
+                    <a href="@link.Url" target="@link.Target" class="@Current(link.Url)">@link.Name</a>
+                }
+            </nav>
+
+            <div class="gp-header-actions">
+                @if (isApplicant)
+                {
+                    <a href="@U("/account/notifications")" class="gp-bell" aria-label="@(isAr ? "الإشعارات" : "Notifications")"><i class="bi bi-bell"></i></a>
+                    <div class="gp-user">
+                        <button type="button" class="gp-user-btn" data-action="usermenu">
+                            <span class="gp-avatar">@applicant!.Initials</span>
+                            <span class="gp-user-name">@applicant.NameFor(isAr)</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="gp-usermenu">
+                            <a href="@U("/account")"><i class="bi bi-grid"></i><span>@(isAr ? "لوحة المتابعة" : "My dashboard")</span></a>
+                            <a href="@U("/account/profile")"><i class="bi bi-person"></i><span>@(isAr ? "ملفي الشخصي" : "My profile")</span></a>
+                            <a href="@U("/account/messages")"><i class="bi bi-chat-left-text"></i><span>@(isAr ? "الرسائل" : "Messages")</span></a>
+                            <form method="post" action="/portal/account/logout" class="gp-usermenu-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="lang" value="@(isAr ? "ar" : "en")" />
+                                <button type="submit"><i class="bi bi-box-arrow-right"></i><span>@(isAr ? "تسجيل الخروج" : "Sign out")</span></button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                if (trackLink != null)
+                {
+                    <a href="@trackLink.Url" class="gp-iconlink"><i class="bi bi-geo"></i><span>@trackLink.Name</span></a>
+                }
+                if (signInLink != null)
+                {
+                    <a href="@signInLink.Url" class="gp-btn gp-btn--ghost">@signInLink.Name</a>
+                }
+                if (registerLink != null)
+                {
+                    <a href="@registerLink.Url" class="gp-btn gp-btn--primary">@registerLink.Name</a>
+                }
+                }
+            </div>
+        </div>
+    </header>
+
+    <main id="gp-main">
+        @RenderBody()
+    </main>
+
+    <footer class="gp-footer">
+        <div class="gp-wrap gp-footer-in">
+            <div class="gp-footer-brand">
+                <img src="@logoUrl" alt="@S("brandName")" class="gp-footer-logo" />
+                <p>@S("footerText")</p>
+            </div>
+            @if (footerColumns != null)
+            {
+                foreach (var column in footerColumns)
+                {
+                    var links = column.Content.Value<IEnumerable<Link>>("links") ?? Enumerable.Empty<Link>();
+                    <div>
+                        <h4>@(column.Content.Value<string>("title"))</h4>
+                        @foreach (var link in links)
+                        {
+                            <a href="@link.Url" target="@link.Target" rel="@(link.Target == "_blank" ? "noopener" : null)">@link.Name</a>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        <div class="gp-footer-bottom">
+            <div class="gp-wrap"><span>@S("copyright").Replace("{year}", DateTime.UtcNow.Year.ToString())</span></div>
+        </div>
+    </footer>
+
+    <script src="~/js/gahar-site.js" asp-append-version="true" defer></script>
+    <script src="~/js/portal-api.js" asp-append-version="true" defer></script>
+</body>
+</html>

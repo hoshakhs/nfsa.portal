@@ -1,0 +1,61 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Certificates and decisions", "الشهادات والقرارات")</h1><p>@L("Every certificate carries a verification code that anyone can check.", "كل شهادة تحمل رمز تحقق يمكن لأي جهة التحقق منه.")</p></div></div>
+<div class="gp-certs">
+<article class="gp-cert">
+<div class="gp-cert-seal"><i class="bi bi-award-fill"></i></div>
+<div class="gp-cert-body">
+<span class="gp-cert-kind">@L("Accreditation certificate", "شهادة اعتماد")</span>
+<h2>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</h2>
+<dl>
+<dt>@L("Certificate no.", "رقم الشهادة")</dt><dd class="gp-ref">GAHAR-PHC-2024-0318</dd>
+<dt>@L("Valid from", "صالحة من")</dt><dd>@L("15 Mar 2024", "15 مارس 2024")</dd>
+<dt>@L("Valid until", "صالحة حتى")</dt><dd>@L("14 Mar 2027", "14 مارس 2027")</dd>
+<dt>@L("Verification code", "رمز التحقق")</dt><dd class="gp-ref">7KQ4-2M9X</dd>
+</dl>
+</div>
+<div class="gp-cert-actions">
+<button class="gp-btn gp-btn--primary gp-btn--sm" type="button"><i class="bi bi-download"></i><span>@L("Download PDF", "تنزيل PDF")</span></button>
+<button class="gp-btn gp-btn--outline gp-btn--sm" data-toast-ar="تم نسخ رابط التحقق" data-toast-en="Verification link copied" type="button"><i class="bi bi-link-45deg"></i><span>@L("Copy verification link", "نسخ رابط التحقق")</span></button>
+</div>
+</article>
+<article class="gp-cert">
+<div class="gp-cert-seal"><i class="bi bi-person-vcard-fill"></i></div>
+<div class="gp-cert-body">
+<span class="gp-cert-kind">@L("Professional registration certificate", "شهادة تسجيل مهني")</span>
+<h2>@L("Dr. Mona Adel — Paediatrics", "د. منى عادل — طب الأطفال")</h2>
+<dl>
+<dt>@L("Registration no.", "رقم التسجيل")</dt><dd class="gp-ref">REG-2026-55012</dd>
+<dt>@L("Issued", "تاريخ الإصدار")</dt><dd>@L("18 Aug 2026", "18 أغسطس 2026")</dd>
+<dt>@L("Valid until", "صالحة حتى")</dt><dd>@L("17 Aug 2031", "17 أغسطس 2031")</dd>
+<dt>@L("Verification code", "رمز التحقق")</dt><dd class="gp-ref">P3VD-81LA</dd>
+</dl>
+</div>
+<div class="gp-cert-actions">
+<button class="gp-btn gp-btn--primary gp-btn--sm" type="button"><i class="bi bi-download"></i><span>@L("Download PDF", "تنزيل PDF")</span></button>
+<button class="gp-btn gp-btn--outline gp-btn--sm" data-toast-ar="تم نسخ رابط التحقق" data-toast-en="Verification link copied" type="button"><i class="bi bi-link-45deg"></i><span>@L("Copy verification link", "نسخ رابط التحقق")</span></button>
+</div>
+</article>
+</div>
+<div class="gp-panel gp-panel--flush">
+<h2 class="gp-h3 gp-pad">@L("Decisions", "القرارات")</h2>
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Decision no.", "رقم القرار")</th><th>@L("Subject", "الموضوع")</th><th>@L("Date", "التاريخ")</th><th></th></tr></thead>
+<tbody>
+<tr><td class="gp-ref">DEC-2026-1184</td><td>@L("Documents accepted for GHR-2026-004182", "قبول مستندات طلب الاعتماد GHR-2026-004182")</td><td>@L("11 Sep 2026", "11 سبتمبر 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td class="gp-ref">DEC-2026-0951</td><td>@L("Survey outcome — Al-Salam (corrective plan required)", "نتيجة زيارة التقييم — وحدة السلام (مطلوب خطة تصحيحية)")</td><td>@L("31 Aug 2026", "31 أغسطس 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td class="gp-ref">DEC-2026-0877</td><td>@L("Professional registration approved", "الموافقة على التسجيل المهني")</td><td>@L("18 Aug 2026", "18 أغسطس 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>

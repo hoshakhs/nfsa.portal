@@ -1,0 +1,100 @@
+@using System.Globalization
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ServiceSummary>
+@{
+    // One service's details, as configured in the platform's Service Catalogue.
+    // Used by the public services page (block "serviceCatalogSection") and by
+    // "New service request" in the applicant area.
+    //   ViewData["ApplyUrl"]  where "Start request" goes
+    //   ViewData["BackUrl"]   link back to the list
+    //   ViewData["SignInHint"] true → "you'll need to sign in" under the button
+    var s = Model;
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string T(string? en, string? ar) => (isAr ? (string.IsNullOrWhiteSpace(ar) ? en : ar) : (string.IsNullOrWhiteSpace(en) ? ar : en)) ?? "";
+    var info = s.Info;
+    var conditions = ServiceInfo.Lines(T(info?.ConditionsEn, info?.ConditionsAr));
+    var documents = ServiceInfo.Lines(T(info?.RequiredDocumentsEn, info?.RequiredDocumentsAr));
+    var steps = ServiceInfo.Lines(T(info?.StepsEn, info?.StepsAr));
+    var output = T(info?.OutputEn, info?.OutputAr);
+    var fee = s.FeeAmount is > 0 ? s.FeeAmount.Value.ToString("#,0.##", CultureInfo.InvariantCulture) + (isAr ? " ج.م" : " EGP") : null;
+    var applyUrl = ViewData["ApplyUrl"] as string;
+    var backUrl = ViewData["BackUrl"] as string;
+}
+
+<div class="gp-svc-detail">
+@if (!string.IsNullOrEmpty(backUrl))
+{
+    <a class="gp-back" href="@backUrl"><i class="bi @(isAr ? "bi-arrow-right" : "bi-arrow-left")"></i> @L("All services", "كل الخدمات")</a>
+}
+<div class="gp-svc-detail-head">
+<span class="gp-svc-icon gp-svc-icon--lg"><i class="bi @(string.IsNullOrWhiteSpace(s.Icon) ? "bi-file-earmark-text" : s.Icon)"></i></span>
+<div>
+@if (!string.IsNullOrWhiteSpace(T(s.CategoryEn, s.CategoryAr)))
+{
+    <span class="gp-tag">@T(s.CategoryEn, s.CategoryAr)</span>
+}
+<h1 class="gp-h1">@T(s.NameEn, s.NameAr)</h1>
+@if (!string.IsNullOrWhiteSpace(T(s.DescriptionEn, s.DescriptionAr)))
+{
+    <p class="gp-svc-detail-lead">@T(s.DescriptionEn, s.DescriptionAr)</p>
+}
+</div>
+</div>
+
+<div class="gp-split">
+<div class="gp-stack">
+@if (conditions.Count > 0)
+{
+    <div class="gp-panel">
+    <h2 class="gp-h3">@L("Who can apply", "شروط التقديم")</h2>
+    <ul class="gp-checklist">
+    @foreach (var c in conditions) { <li>@c</li> }
+    </ul>
+    </div>
+}
+@if (documents.Count > 0)
+{
+    <div class="gp-panel">
+    <h2 class="gp-h3">@L("Documents to prepare", "المستندات المطلوبة")</h2>
+    <ul class="gp-svc-doclist">
+    @foreach (var d in documents) { <li><i class="bi bi-file-earmark-text"></i><span>@d</span></li> }
+    </ul>
+    </div>
+}
+@if (steps.Count > 0)
+{
+    <div class="gp-panel">
+    <h2 class="gp-h3">@L("How it works", "خطوات الخدمة")</h2>
+    <ol class="gp-svc-steps">
+    @foreach (var st in steps) { <li><span>@st</span></li> }
+    </ol>
+    </div>
+}
+</div>
+
+<aside class="gp-panel gp-svc-aside">
+<h2 class="gp-h3">@L("Service summary", "ملخص الخدمة")</h2>
+<dl>
+<dt>@L("Fee", "الرسوم")</dt><dd>@(fee ?? L("Calculated after review", "تُحسب بعد مراجعة الطلب"))</dd>
+@if (s.ProcessingDays is > 0)
+{
+    <dt>@L("Expected duration", "المدة المتوقعة")</dt><dd>@L($"{s.ProcessingDays} days", $"{s.ProcessingDays} يومًا")</dd>
+}
+<dt>@L("Who can apply", "من يمكنه التقديم")</dt><dd>@(s.RequiresApprovedFacility ? L("Approved facilities", "المنشآت المعتمدة على المنصة") : L("Registered facilities", "المنشآت المسجلة"))</dd>
+@if (!string.IsNullOrWhiteSpace(output))
+{
+    <dt>@L("You will receive", "مخرجات الخدمة")</dt><dd>@output</dd>
+}
+</dl>
+@if (!string.IsNullOrEmpty(applyUrl))
+{
+    <a class="gp-btn gp-btn--primary gp-btn--block" href="@applyUrl"><i class="bi bi-send"></i><span>@L("Start request", "ابدأ الطلب")</span></a>
+    @if (ViewData["SignInHint"] is true)
+    {
+        <p class="gp-muted">@L("You'll need to sign in with your applicant account.", "ستحتاج إلى تسجيل الدخول بحساب المتعامل.")</p>
+    }
+}
+</aside>
+</div>
+</div>

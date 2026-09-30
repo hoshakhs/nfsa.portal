@@ -1,0 +1,12 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+@* Renders every section of a page. Each section type has its own file: Views/Partials/Blocks/{alias}.cshtml *@
+@foreach (var block in Model)
+{
+    if (block.Settings?.Value<bool>("hide") == true)
+    {
+        continue;
+    }
+
+    @await Html.PartialAsync("~/Views/Partials/Blocks/" + block.Content.ContentType.Alias + ".cshtml", block)
+}

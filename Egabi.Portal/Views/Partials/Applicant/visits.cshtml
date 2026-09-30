@@ -1,0 +1,34 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Inspection and visit requests", "طلبات الزيارات والتقييم")</h1><p>@L("Scheduled visits to your facilities, and requests for new ones.", "الزيارات المجدولة لمنشآتك، وطلب زيارة جديدة.")</p></div></div>
+<div class="gp-panel gp-panel--flush">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Visit type", "نوع الزيارة")</th><th>@L("Facility", "المنشأة")</th><th>@L("Dates", "التاريخ")</th><th>@L("Team lead", "رئيس الفريق")</th><th>@L("Status", "الحالة")</th><th></th></tr></thead>
+<tbody>
+<tr><td>@L("Accreditation survey", "زيارة تقييم للاعتماد")</td><td>@L("Nile Valley Specialized Hospital", "مستشفى وادي النيل التخصصي")</td><td>@L("12 – 13 Oct 2026", "12 – 13 أكتوبر 2026")</td><td>@L("Dr. Ahmed Fouad", "د. أحمد فؤاد")</td><td><span class="gp-pill gp-pill--warn">@L("Awaiting your confirmation", "بانتظار تأكيدك")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--primary" data-toast-ar="تم تأكيد موعد الزيارة" data-toast-en="Visit dates confirmed" type="button">@L("Confirm", "تأكيد")</button></td></tr>
+<tr><td>@L("Survey visit", "زيارة تقييم")</td><td>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</td><td>@L("02 Jul 2026", "02 يوليو 2026")</td><td>@L("Dr. Salma Reda", "د. سلمى رضا")</td><td><span class="gp-pill gp-pill--ok">@L("Completed", "تمت")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--outline" type="button">@L("Report", "التقرير")</button></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<form class="gp-panel" data-toast-ar="تم تقديم طلب الزيارة VR-2026-00219" data-toast-en="Visit request VR-2026-00219 submitted">
+<h2 class="gp-h3">@L("Request a visit", "طلب زيارة جديدة")</h2>
+<div class="gp-form-grid">
+<div class="gp-field"><label for="vs-fac">@L("Facility", "المنشأة")</label><select id="vs-fac"><option>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</option><option>@L("Nile Valley Specialized Hospital", "مستشفى وادي النيل التخصصي")</option></select></div>
+<div class="gp-field"><label for="vs-type">@L("Visit type", "نوع الزيارة")</label><select id="vs-type"><option>@L("Follow-up visit to verify corrective actions", "زيارة متابعة للتحقق من الإجراءات التصحيحية")</option><option>@L("Mock survey visit", "زيارة تقييم تجريبية")</option><option>@L("Re-survey", "إعادة تقييم")</option><option>@L("Reschedule a planned visit", "تغيير موعد زيارة مجدولة")</option></select></div>
+<div class="gp-field"><label for="vs-from">@L("Available from", "متاح من")</label><input id="vs-from" type="date" value="2026-10-20"/></div>
+<div class="gp-field"><label for="vs-to">@L("Available until", "متاح حتى")</label><input id="vs-to" type="date" value="2026-11-05"/></div>
+<div class="gp-field gp-field--full"><label for="vs-why">@L("Reason for the request", "سبب الطلب")</label><textarea id="vs-why" rows="3"></textarea></div>
+</div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Send request", "إرسال الطلب")</button>
+</form>
+</div>

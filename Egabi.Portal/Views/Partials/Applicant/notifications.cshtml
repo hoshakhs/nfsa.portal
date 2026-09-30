@@ -1,0 +1,22 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("Notifications", "الإشعارات")</h1></div>
+<button class="gp-btn gp-btn--ghost" data-action="readall" type="button">@L("Mark all as read", "تحديد الكل كمقروء")</button>
+</div>
+<ul class="gp-notes" id="gp-notes">
+<li class="gp-is-unread"><i class="bi bi-calendar2-check"></i><div><strong>@L("Survey visit scheduled", "تم تحديد موعد زيارة التقييم")</strong><p>@L("Nile Valley Specialized Hospital · 12 – 13 Oct 2026. Please confirm within 5 days.", "مستشفى وادي النيل التخصصي · 12 – 13 أكتوبر 2026. يرجى التأكيد خلال 5 أيام.")</p><time>@L("6 days ago", "منذ 6 أيام")</time></div><a class="gp-textlink" href="@U("/account/visits")">@L("View", "عرض")</a></li>
+<li class="gp-is-unread"><i class="bi bi-receipt"></i><div><strong>@L("New invoice due", "فاتورة جديدة مستحقة")</strong><p>@L("INV-2026-00871 for EGP 45,000 — due 05 Oct.", "INV-2026-00871 بمبلغ 45,000 ج.م — مستحقة في 05 أكتوبر.")</p><time>@L("3 days ago", "منذ 3 أيام")</time></div><a class="gp-textlink" href="@U("/account/payments")">@L("Pay", "ادفع")</a></li>
+<li class="gp-is-unread"><i class="bi bi-exclamation-triangle"></i><div><strong>@L("Document expiring soon", "مستند ينتهي قريبًا")</strong><p>@L("Al-Nour Radiology Centre's civil defence certificate expires on 10 Oct.", "شهادة الحماية المدنية لمركز النور للأشعة تنتهي في 10 أكتوبر.")</p><time>@L("Yesterday", "أمس")</time></div><a class="gp-textlink" href="@U("/account/documents")">@L("Replace", "استبدال")</a></li>
+<li><i class="bi bi-check2-circle"></i><div><strong>@L("Documents accepted", "تم قبول المستندات")</strong><p>@L("Request GHR-2026-004182.", "الطلب GHR-2026-004182.")</p><time>@L("11 Sep", "11 سبتمبر")</time></div></li>
+<li><i class="bi bi-patch-check"></i><div><strong>@L("Professional registration certificate issued", "صدرت شهادة التسجيل المهني")</strong><p>@L("Download it from Certificates and decisions.", "يمكنك تنزيلها من الشهادات والقرارات.")</p><time>@L("18 Aug", "18 أغسطس")</time></div></li>
+</ul>
+</div>

@@ -1,0 +1,30 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Documents and attachments", "المستندات والمرفقات")</h1><p>@L("Reuse documents stored here in any new request without uploading again.", "استخدم المستندات المحفوظة هنا في أي طلب جديد دون إعادة رفعها.")</p></div></div>
+<button class="gp-dropzone" data-upload="" type="button">
+<i class="bi bi-cloud-arrow-up"></i>
+<strong>@L("Drag files here or click to upload", "اسحب الملفات هنا أو اضغط للرفع")</strong>
+<span>@L("PDF, JPG, PNG or XLSX · up to 20 MB", "PDF أو JPG أو PNG أو XLSX · حتى 20 ميجابايت")</span>
+</button>
+<div class="gp-panel gp-panel--flush">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Document", "المستند")</th><th>@L("Type", "النوع")</th><th>@L("Linked to", "مرتبط بـ")</th><th>@L("Expires", "تاريخ الانتهاء")</th><th>@L("Status", "الحالة")</th><th></th></tr></thead>
+<tbody>
+<tr><td><i class="bi bi-file-earmark-pdf gp-fileic"></i>licence_2026.pdf</td><td>@L("Operating licence", "ترخيص تشغيل")</td><td class="gp-ref">GHR-2026-004182</td><td>@L("31 Dec 2027", "31 ديسمبر 2027")</td><td><span class="gp-pill gp-pill--ok">@L("Accepted", "مقبول")</span></td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td><i class="bi bi-file-earmark-excel gp-fileic"></i>SAT_report_Q3.xlsx</td><td>@L("Self-assessment", "تقييم ذاتي")</td><td class="gp-ref">GHR-2026-004301</td><td>—</td><td><span class="gp-pill">@L("Under review", "قيد المراجعة")</span></td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
+<tr><td><i class="bi bi-file-earmark-pdf gp-fileic"></i>fire_safety_cert.pdf</td><td>@L("Civil defence certificate", "شهادة الحماية المدنية")</td><td class="gp-ref">GHR-2026-004290</td><td>@L("10 Oct 2026", "10 أكتوبر 2026")</td><td><span class="gp-pill gp-pill--warn">@L("Expiring soon", "ينتهي قريبًا")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Replace", "استبدال")</button></td></tr>
+<tr><td><i class="bi bi-file-earmark-image gp-fileic"></i>floor_plan.png</td><td>@L("Floor plan", "مخطط المنشأة")</td><td class="gp-ref">GHR-2026-004290</td><td>—</td><td><span class="gp-pill gp-pill--bad">@L("Needs update", "يحتاج تحديث")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--outline" data-upload="" type="button">@L("Replace", "استبدال")</button></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>

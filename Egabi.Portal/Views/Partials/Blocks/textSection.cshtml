@@ -1,0 +1,15 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    // Formatted text written by the editor in the Rich Text Editor.
+    var text = Model.Content.Value<IHtmlEncodedString>("text")?.ToHtmlString();
+}
+@if (!string.IsNullOrWhiteSpace(text))
+{
+    <div class="gp-wrap gp-section">
+        <div class="gp-richtext">
+            @Html.Raw(text)
+        </div>
+    </div>
+}

@@ -1,0 +1,35 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("Messages", "الرسائل")</h1><p>@L("Your conversations with GAHAR departments, linked to your requests.", "مراسلاتك مع إدارات الهيئة، مرتبطة بطلباتك.")</p></div>
+<button class="gp-btn gp-btn--primary" data-toast-ar="اختر طلبًا لبدء محادثة جديدة" data-toast-en="Choose a request to start a new conversation" type="button"><i class="bi bi-pencil-square"></i><span>@L("New message", "رسالة جديدة")</span></button>
+</div>
+<div class="gp-inbox">
+<ul class="gp-threads" data-pick="">
+<li class="gp-is-on"><strong>@L("Accreditation department", "إدارة الاعتماد")</strong><span class="gp-ref">GHR-2026-004182</span><p>@L("The visit is scheduled for 12 and 13 October…", "تم تحديد موعد الزيارة يومي 12 و13 أكتوبر…")</p></li>
+<li class="gp-is-unread"><strong>@L("Monitoring department", "إدارة المتابعة")</strong><span class="gp-ref">GHR-2026-003917</span><p>@L("Reminder: corrective action plan due…", "تذكير: موعد تقديم خطة الإجراءات التصحيحية…")</p></li>
+<li><strong>@L("Technical support", "الدعم الفني")</strong><span class="gp-ref">TS-2026-00402</span><p>@L("We received your request; an expert will contact you…", "تم استلام طلبك وسيتواصل معك أحد الخبراء…")</p></li>
+</ul>
+<div class="gp-convo">
+<div class="gp-convo-head"><strong>@L("Accreditation department", "إدارة الاعتماد")</strong><span class="gp-ref">GHR-2026-004182</span></div>
+<div class="gp-thread">
+<div class="gp-bubble gp-bubble--them"><p>@L("The visit is scheduled for 12 and 13 October. Please confirm within 5 days.", "تم تحديد موعد الزيارة يومي 12 و13 أكتوبر. يرجى تأكيد الموعد خلال 5 أيام.")</p><time>@L("18 Sep, 10:24 am", "18 سبتمبر، 10:24 ص")</time></div>
+<div class="gp-bubble gp-bubble--me"><p>@L("Thank you — we'll confirm after checking department schedules.", "شكرًا، سنؤكد بعد مراجعة جداول الأقسام.")</p><time>@L("19 Sep, 9:02 am", "19 سبتمبر، 9:02 ص")</time></div>
+<div class="gp-bubble gp-bubble--them"><p>@L("Noted. Please also prepare the emergency team's training records.", "تمام. يرجى أيضًا تجهيز سجلات تدريب فريق الطوارئ.")</p><time>@L("19 Sep, 11:40 am", "19 سبتمبر، 11:40 ص")</time></div>
+</div>
+<form class="gp-reply" data-toast-ar="تم إرسال الرسالة" data-toast-en="Message sent">
+<button aria-label="Attach" class="gp-iconbtn" data-upload="" type="button"><i class="bi bi-paperclip"></i></button>
+<input aria-label="Reply" placeholder="@L("Write a reply", "اكتب ردك")" type="text"/>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Send", "إرسال")</button>
+</form>
+</div>
+</div>
+</div>

@@ -1,0 +1,25 @@
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var steps = Model.Content.Value<BlockListModel>("steps");
+    var number = 0;
+}
+<div class="gp-band">
+    <div class="gp-wrap gp-section">
+        <h2 class="gp-h2">@(Model.Content.Value<string>("title"))</h2>
+        @if (steps != null && steps.Any())
+        {
+            <ol class="gp-journey">
+                @foreach (var step in steps)
+                {
+                    number++;
+                    <li>
+                        <span class="gp-journey-n">@number</span>
+                        <h3>@(step.Content.Value<string>("title"))</h3>
+                        <p>@(step.Content.Value<string>("text"))</p>
+                    </li>
+                }
+            </ol>
+        }
+    </div>
+</div>

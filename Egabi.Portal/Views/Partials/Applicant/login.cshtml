@@ -1,0 +1,34 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Sign in — real, against the egabi Platform API (Controllers/PortalApiController.cs → Login)
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+}
+
+<div class="gp-screen">
+<div class="gp-wrap gp-section gp-auth">
+<form class="gp-auth-form" data-api="/portal/api/account/login" novalidate>
+@Html.AntiForgeryToken()
+<input type="hidden" name="returnUrl" value="@returnUrl" />
+<h1>@L("Sign in", "تسجيل الدخول")</h1>
+<p class="gp-muted">@L("Use your national ID or registered email.", "استخدم الرقم القومي أو البريد الإلكتروني المسجل.")</p>
+<div class="gp-form-error" data-form-error hidden></div>
+<div class="gp-field"><label for="l-id">@L("National ID or email", "الرقم القومي أو البريد الإلكتروني")</label><input id="l-id" name="login" type="text" autocomplete="username" required /><small class="gp-field-error" data-error-for="login"></small></div>
+<div class="gp-field"><label for="l-pw">@L("Password", "كلمة المرور")</label><input id="l-pw" name="password" type="password" autocomplete="current-password" required /><small class="gp-field-error" data-error-for="password"></small></div>
+<button class="gp-btn gp-btn--primary gp-btn--block" type="submit">@L("Sign in", "تسجيل الدخول")</button>
+<p class="gp-auth-foot"><span>@L("No account yet?", "ليس لديك حساب؟")</span> <a href="@U("/account/register")">@L("Create one", "أنشئ حسابًا")</a></p>
+</form>
+<div class="gp-auth-side">
+<h2>@L("With your account you can:", "من خلال حسابك يمكنك:")</h2>
+<ul class="gp-checklist gp-checklist--light">
+<li>@L("Register your healthcare facility", "تسجيل منشأتك الصحية")</li>
+<li>@L("Upload the required documents", "رفع المستندات المطلوبة")</li>
+<li>@L("Follow the approval of your requests at every stage", "متابعة اعتماد طلباتك في كل مرحلة")</li>
+<li>@L("Receive decisions and certificates", "استلام القرارات والشهادات")</li>
+</ul>
+</div>
+</div>
+</div>

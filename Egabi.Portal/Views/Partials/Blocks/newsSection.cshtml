@@ -1,0 +1,46 @@
+@using Umbraco.Cms.Core.Models.PublishedContent
+@using System.Globalization
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    // Shows the 3 latest news items automatically from the News page.
+    var newsPage = Umbraco.AssignedContentItem.Root()?.Children()
+        .FirstOrDefault(x => x.ContentType.Alias == "newsListPage");
+
+    DateTime NewsDate(IPublishedContent x)
+    {
+        var d = x.Value<DateTime>("date");
+        return d == default ? x.CreateDate : d;
+    }
+
+    var latest = newsPage?.Children()
+        .Where(x => x.ContentType.Alias == "newsItem")
+        .OrderByDescending(NewsDate)
+        .Take(3)
+        .ToList() ?? new List<IPublishedContent>();
+}
+@if (latest.Any())
+{
+    <div class="gp-wrap gp-section">
+        <div class="gp-section-head">
+            <h2 class="gp-h2">@(Model.Content.Value<string>("title"))</h2>
+            @if (newsPage != null)
+            {
+                <a href="@newsPage.Url()" class="gp-textlink">@(Model.Content.Value<string>("linkText"))</a>
+            }
+        </div>
+        <div class="gp-news-row">
+            @foreach (var news in latest)
+            {
+                <a class="gp-news-item gp-news-link" href="@news.Url()">
+                    <time>@NewsDate(news).ToString("dd MMM yyyy", CultureInfo.CurrentCulture)</time>
+                    @if (!string.IsNullOrWhiteSpace(news.Value<string>("category")))
+                    {
+                        <span class="gp-tag">@(news.Value<string>("category"))</span>
+                    }
+                    <h3>@news.Name</h3>
+                </a>
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,49 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Payments and invoices", "المدفوعات والفواتير")</h1><p>@L("Pay outstanding fees and download receipts.", "سدّد الرسوم المستحقة ونزّل الإيصالات.")</p></div></div>
+<div class="gp-kpis gp-kpis--3">
+<div class="gp-kpi gp-kpi--warn"><strong>@L("EGP 45,000", "45,000 ج.م")</strong><span>@L("Outstanding", "مستحق السداد")</span></div>
+<div class="gp-kpi"><strong>@L("EGP 62,500", "62,500 ج.م")</strong><span>@L("Paid in 2026", "مدفوع في 2026")</span></div>
+<div class="gp-kpi"><strong>5</strong><span>@L("Receipts", "إيصالات")</span></div>
+</div>
+<div class="gp-panel gp-panel--flush">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Invoice", "الفاتورة")</th><th>@L("Description", "البيان")</th><th>@L("Request", "الطلب")</th><th>@L("Amount", "المبلغ")</th><th>@L("Due", "الاستحقاق")</th><th>@L("Status", "الحالة")</th><th></th></tr></thead>
+<tbody>
+<tr><td class="gp-ref">INV-2026-00871</td><td>@L("Follow-up visit fee", "رسوم زيارة متابعة")</td><td class="gp-ref">GHR-2026-003917</td><td>@L("EGP 45,000", "45,000 ج.م")</td><td>@L("05 Oct 2026", "05 أكتوبر 2026")</td><td><span class="gp-pill gp-pill--warn">@L("Unpaid", "غير مدفوعة")</span></td><td><button class="gp-btn gp-btn--sm gp-btn--primary" data-modal-open="gp-modal-pay" type="button">@L("Pay now", "ادفع الآن")</button></td></tr>
+<tr><td class="gp-ref">INV-2026-00812</td><td>@L("Accreditation fee", "رسوم الاعتماد")</td><td class="gp-ref">GHR-2026-004182</td><td>@L("EGP 45,000", "45,000 ج.م")</td><td>@L("20 Sep 2026", "20 سبتمبر 2026")</td><td><span class="gp-pill gp-pill--ok">@L("Paid", "مدفوعة")</span></td><td><button aria-label="Receipt" class="gp-iconbtn" type="button"><i class="bi bi-receipt"></i></button></td></tr>
+<tr><td class="gp-ref">INV-2026-00544</td><td>@L("Technical support fee", "رسوم الدعم الفني")</td><td class="gp-ref">TS-2026-00311</td><td>@L("EGP 15,000", "15,000 ج.م")</td><td>@L("12 Jun 2026", "12 يونيو 2026")</td><td><span class="gp-pill gp-pill--ok">@L("Paid", "مدفوعة")</span></td><td><button aria-label="Receipt" class="gp-iconbtn" type="button"><i class="bi bi-receipt"></i></button></td></tr>
+<tr><td class="gp-ref">INV-2026-00301</td><td>@L("Professional registration fee", "رسوم التسجيل المهني")</td><td class="gp-ref">GHR-2026-003520</td><td>@L("EGP 2,500", "2,500 ج.م")</td><td>@L("10 Aug 2026", "10 أغسطس 2026")</td><td><span class="gp-pill gp-pill--ok">@L("Paid", "مدفوعة")</span></td><td><button aria-label="Receipt" class="gp-iconbtn" type="button"><i class="bi bi-receipt"></i></button></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div aria-labelledby="gp-pay-title" aria-modal="true" class="gp-modal" id="gp-modal-pay" role="dialog">
+<div class="gp-modal-box">
+<div class="gp-modal-head">
+<h2 id="gp-pay-title">@L("Pay invoice INV-2026-00871", "سداد الفاتورة INV-2026-00871")</h2>
+<button aria-label="Close" class="gp-iconbtn" data-modal-close="" type="button"><i class="bi bi-x-lg"></i></button>
+</div>
+<p class="gp-pay-amount"><span>@L("Amount due", "المبلغ المستحق")</span><strong>@L("EGP 45,000", "45,000 ج.م")</strong></p>
+<fieldset class="gp-fieldset">
+<legend>@L("Payment method", "طريقة الدفع")</legend>
+<label class="gp-choice gp-choice--row"><input checked="" name="pay" type="radio"/><span class="gp-choice-box"><i class="bi bi-credit-card-2-front"></i><strong>@L("Bank card (Visa, Mastercard, Meeza)", "بطاقة بنكية (فيزا، ماستركارد، ميزة)")</strong></span></label>
+<label class="gp-choice gp-choice--row"><input name="pay" type="radio"/><span class="gp-choice-box"><i class="bi bi-upc-scan"></i><strong>@L("Fawry payment code", "كود دفع فوري")</strong></span></label>
+<label class="gp-choice gp-choice--row"><input name="pay" type="radio"/><span class="gp-choice-box"><i class="bi bi-bank"></i><strong>@L("Bank transfer", "تحويل بنكي")</strong></span></label>
+</fieldset>
+<div class="gp-form-actions">
+<button class="gp-btn gp-btn--primary" data-modal-close="" data-toast-ar="تم السداد بنجاح — إيصال RCP-2026-12044" data-toast-en="Payment successful — receipt RCP-2026-12044" type="button">@L("Pay EGP 45,000", "ادفع 45,000 ج.م")</button>
+<button class="gp-btn gp-btn--ghost" data-modal-close="" type="button">@L("Cancel", "إلغاء")</button>
+</div>
+</div>
+</div>

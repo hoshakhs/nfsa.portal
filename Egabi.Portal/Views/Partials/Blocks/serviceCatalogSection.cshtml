@@ -1,0 +1,90 @@
+@using System.Globalization
+@using Umbraco.Cms.Core.Models.Blocks
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@inject InspectProApiClient Api
+@{
+    // Public services page — the services come LIVE from the egabi Platform's Service Catalogue.
+    //   {page}                 → all published services, grouped by category
+    //   {page}?service=CODE    → the service's details (conditions, documents, steps, fee, duration)
+    // "Start request" goes to the applicant area (sign-in first if needed), which opens the service's form.
+    // The editor only sets a title and an intro; nothing here is specific to one service.
+    var c = Model.Content;
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    string T(string? en, string? ar) => (isAr ? (string.IsNullOrWhiteSpace(ar) ? en : ar) : (string.IsNullOrWhiteSpace(en) ? ar : en)) ?? "";
+    string Icon(string? icon) => string.IsNullOrWhiteSpace(icon) ? "bi-file-earmark-text" : icon;
+    string Fee(decimal? fee) => fee is > 0 ? fee.Value.ToString("#,0.##", CultureInfo.InvariantCulture) + (isAr ? " ج.م" : " EGP") : L("Fee calculated after review", "تُحسب الرسوم بعد المراجعة");
+
+    var pagePath = Context.Request.Path.ToString();
+    var selected = Context.Request.Query["service"].ToString().Trim();
+
+    var list = await Api.GetServicesAsync();
+    var services = list.Data ?? new List<ServiceSummary>();
+    var current = string.IsNullOrEmpty(selected) ? null
+        : services.FirstOrDefault(s => string.Equals(s.Code, selected, StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="gp-wrap gp-section">
+@if (current != null)
+{
+    var detailsData = new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData)
+    {
+        ["ApplyUrl"] = U("/account/new-request") + "?code=" + Uri.EscapeDataString(current.Code) + "&start=1",
+        ["BackUrl"] = pagePath,
+        ["SignInHint"] = true
+    };
+    @await Html.PartialAsync("~/Views/Partials/Services/_ServiceDetails.cshtml", current, detailsData)
+}
+else
+{
+    if (!string.IsNullOrWhiteSpace(c.Value<string>("title")))
+    {
+        <h2 class="gp-h2">@(c.Value<string>("title"))</h2>
+    }
+    if (!string.IsNullOrWhiteSpace(c.Value<string>("intro")))
+    {
+        <p class="gp-section-intro">@(c.Value<string>("intro"))</p>
+    }
+
+    if (!string.IsNullOrEmpty(selected))
+    {
+        <div class="gp-form-error">@L("This service is not available right now.", "هذه الخدمة غير متاحة حاليًا.")</div>
+    }
+
+    if (!list.Ok)
+    {
+        <div class="gp-form-error">@L("Services could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل الخدمات حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+    }
+    else if (services.Count == 0)
+    {
+        <div class="gp-panel"><p class="gp-muted">@L("No services are available yet.", "لا توجد خدمات متاحة حاليًا.")</p></div>
+    }
+
+    foreach (var g in services.GroupBy(s => T(s.CategoryEn, s.CategoryAr)))
+    {
+        if (!string.IsNullOrEmpty(g.Key))
+        {
+            <h3 class="gp-h3 gp-svc-group">@g.Key</h3>
+        }
+        <div class="gp-svc-list">
+        @foreach (var s in g)
+        {
+            <a class="gp-svc-item" href="@pagePath?service=@Uri.EscapeDataString(s.Code)">
+            <span class="gp-svc-icon"><i class="bi @Icon(s.Icon)"></i></span>
+            <span class="gp-svc-body">
+            <span class="gp-svc-name">@T(s.NameEn, s.NameAr)</span>
+            @if (!string.IsNullOrWhiteSpace(T(s.DescriptionEn, s.DescriptionAr)))
+            {
+                <span class="gp-svc-desc">@T(s.DescriptionEn, s.DescriptionAr)</span>
+            }
+            <span class="gp-svc-meta">@Fee(s.FeeAmount)@(s.ProcessingDays is > 0 ? " · " + L($"{s.ProcessingDays} days", $"{s.ProcessingDays} يومًا") : "")</span>
+            </span>
+            <i class="bi @(isAr ? "bi-chevron-left" : "bi-chevron-right") gp-svc-go"></i>
+            </a>
+        }
+        </div>
+    }
+}
+</div>

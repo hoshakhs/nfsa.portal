@@ -1,0 +1,42 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div><h1>@L("Corrective action plan", "خطة الإجراءات التصحيحية")</h1><p>@L("Al-Salam Primary Care Unit · Visit of 02 Jul 2026 · Due 30 Sep 2026", "وحدة السلام للرعاية الأولية · زيارة 02 يوليو 2026 · مستحقة في 30 سبتمبر 2026")</p></div>
+<span class="gp-pill gp-pill--warn gp-pill--lg">@L("6 days left", "متبقي 6 أيام")</span>
+</div>
+<div class="gp-panel gp-panel--flush">
+<div class="gp-table-wrap">
+<table class="gp-table">
+<thead><tr><th>@L("Standard", "المعيار")</th><th>@L("Finding", "الملاحظة")</th><th>@L("Severity", "الدرجة")</th><th>@L("Status", "الحالة")</th></tr></thead>
+<tbody>
+<tr><td class="gp-ref">IPC.05</td><td>@L("Vaccine fridge temperature not logged daily", "عدم توثيق مراقبة درجة حرارة ثلاجة اللقاحات يوميًا")</td><td><span class="gp-pill gp-pill--bad">@L("High", "عالية")</span></td><td><span class="gp-pill gp-pill--ok">@L("Answered", "تمت الإجابة")</span></td></tr>
+<tr class="gp-row-open"><td class="gp-ref">EFS.12</td><td>@L("Second-floor fire extinguishers past service date", "طفايات الحريق بالطابق الثاني منتهية الصلاحية")</td><td><span class="gp-pill gp-pill--bad">@L("High", "عالية")</span></td><td><span class="gp-pill gp-pill--warn">@L("In progress", "قيد الإعداد")</span></td></tr>
+<tr><td class="gp-ref">MMS.08</td><td>@L("High-alert medications not segregated", "عدم فصل الأدوية عالية الخطورة")</td><td><span class="gp-pill gp-pill--warn">@L("Medium", "متوسطة")</span></td><td><span class="gp-pill gp-pill--muted">@L("Not started", "لم تبدأ")</span></td></tr>
+<tr><td class="gp-ref">DAS.04</td><td>@L("Lab results missing physician sign-off", "نقص توقيع الطبيب على نتائج المعمل")</td><td><span class="gp-pill">@L("Low", "منخفضة")</span></td><td><span class="gp-pill gp-pill--muted">@L("Not started", "لم تبدأ")</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<form class="gp-panel" data-toast-ar="تم حفظ الإجراء للمعيار EFS.12" data-toast-en="Action for EFS.12 saved">
+<h2 class="gp-h3"><span>@L("Corrective action —", "الإجراء التصحيحي —")</span> <span class="gp-ref">EFS.12</span></h2>
+<div class="gp-form-grid">
+<div class="gp-field gp-field--full"><label for="cp-root">@L("Root cause", "السبب الجذري")</label><textarea id="cp-root" rows="2">No preventive maintenance schedule for fire safety equipment.</textarea></div>
+<div class="gp-field gp-field--full"><label for="cp-act">@L("Action taken", "الإجراء المتخذ")</label><textarea id="cp-act" rows="2">All extinguishers serviced on 14 Sep; quarterly maintenance schedule approved.</textarea></div>
+<div class="gp-field"><label for="cp-owner">@L("Responsible person", "المسؤول")</label><input id="cp-owner" type="text" value="Eng. Karim Nabil"/></div>
+<div class="gp-field"><label for="cp-date">@L("Target closure date", "تاريخ الإغلاق المستهدف")</label><input id="cp-date" type="date" value="2026-09-28"/></div>
+</div>
+<button class="gp-dropzone gp-dropzone--sm" data-upload="" type="button"><i class="bi bi-paperclip"></i><strong>@L("Attach evidence (photos, service receipts, minutes)", "أرفق الأدلة (صور، إيصالات صيانة، محاضر)")</strong></button>
+<div class="gp-form-actions">
+<button class="gp-btn gp-btn--outline" type="submit">@L("Save action", "حفظ الإجراء")</button>
+<button class="gp-btn gp-btn--primary" data-toast-ar="يمكن تقديم الخطة بعد الرد على الملاحظات الأربع" data-toast-en="Plan can be submitted once all 4 findings are answered" type="button">@L("Submit plan", "تقديم الخطة")</button>
+</div>
+</form>
+</div>

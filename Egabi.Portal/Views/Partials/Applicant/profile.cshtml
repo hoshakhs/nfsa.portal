@@ -1,0 +1,59 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead">
+<div class="gp-profile-id">
+<span class="gp-avatar gp-avatar--lg">MA</span>
+<div><h1>@L("Dr. Mona Adel", "د. منى عادل")</h1><p>@L("Medical professional · Representative for 3 facilities", "عضو مهن طبية · ممثل منشأة لـ 3 منشآت")</p></div>
+</div>
+</div>
+<div class="gp-tabset">
+<div class="gp-tabs">
+<button class="gp-tab gp-is-on" data-tab="pi" type="button">@L("Personal details", "البيانات الشخصية")</button>
+<button class="gp-tab" data-tab="sec" type="button">@L("Security", "الأمان")</button>
+<button class="gp-tab" data-tab="pref" type="button">@L("Preferences", "التفضيلات")</button>
+</div>
+<form class="gp-tabpanel gp-is-on" data-panel="pi" data-toast-ar="تم تحديث الملف الشخصي" data-toast-en="Profile updated">
+<div class="gp-form-grid">
+<div class="gp-field"><label for="pf-name">@L("Full name", "الاسم الكامل")</label><input id="pf-name" readonly="" type="text" value="Mona Adel Ibrahim"/><small class="gp-hint">@L("Matches national ID records", "مطابق لبيانات الرقم القومي")</small></div>
+<div class="gp-field"><label for="pf-nid">@L("National ID", "الرقم القومي")</label><input id="pf-nid" readonly="" type="text" value="2880314••••••"/></div>
+<div class="gp-field"><label for="pf-mob">@L("Mobile number", "رقم المحمول")</label><input id="pf-mob" type="tel" value="01001234567"/></div>
+<div class="gp-field"><label for="pf-mail">@L("Email", "البريد الإلكتروني")</label><input id="pf-mail" type="email" value="mona.adel@@example.com"/></div>
+<div class="gp-field"><label for="pf-gov">@L("Governorate", "المحافظة")</label><select id="pf-gov"><option>@L("Giza", "الجيزة")</option><option>@L("Cairo", "القاهرة")</option><option>@L("Port Said", "بورسعيد")</option></select></div>
+<div class="gp-field"><label for="pf-addr">@L("Address", "العنوان")</label><input id="pf-addr" type="text" value="12 El-Haram St., Giza"/></div>
+</div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Save changes", "حفظ التغييرات")</button>
+</form>
+<form class="gp-tabpanel" data-panel="sec" data-toast-ar="تم تغيير كلمة المرور" data-toast-en="Password changed">
+<div class="gp-form-grid">
+<div class="gp-field"><label for="sc-cur">@L("Current password", "كلمة المرور الحالية")</label><input id="sc-cur" type="password"/></div>
+<div class="gp-field"></div>
+<div class="gp-field"><label for="sc-new">@L("New password", "كلمة المرور الجديدة")</label><input id="sc-new" type="password"/></div>
+<div class="gp-field"><label for="sc-new2">@L("Confirm password", "تأكيد كلمة المرور")</label><input id="sc-new2" type="password"/></div>
+</div>
+<label class="gp-check"><input checked="" type="checkbox"/><span>@L("Two-step verification by SMS", "التحقق بخطوتين عبر رسالة نصية")</span></label>
+<div class="gp-form-actions"><button class="gp-btn gp-btn--primary" type="submit">@L("Change password", "تغيير كلمة المرور")</button></div>
+</form>
+<form class="gp-tabpanel" data-panel="pref" data-toast-ar="تم حفظ التفضيلات" data-toast-en="Preferences saved">
+<fieldset class="gp-fieldset">
+<legend>@L("Language for messages", "لغة المراسلات")</legend>
+<label class="gp-check"><input checked="" name="pf-lang" type="radio"/><span>@L("Arabic", "العربية")</span></label>
+<label class="gp-check"><input name="pf-lang" type="radio"/><span>@L("English", "الإنجليزية")</span></label>
+</fieldset>
+<fieldset class="gp-fieldset">
+<legend>@L("Send me notifications by", "أرسل لي الإشعارات عبر")</legend>
+<label class="gp-check"><input checked="" type="checkbox"/><span>@L("Email", "البريد الإلكتروني")</span></label>
+<label class="gp-check"><input checked="" type="checkbox"/><span>@L("SMS", "رسالة نصية")</span></label>
+<label class="gp-check"><input type="checkbox"/><span>@L("WhatsApp", "واتساب")</span></label>
+</fieldset>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Save preferences", "حفظ التفضيلات")</button>
+</form>
+</div>
+</div>

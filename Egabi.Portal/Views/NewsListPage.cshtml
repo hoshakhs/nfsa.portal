@@ -1,0 +1,38 @@
+﻿@using Umbraco.Cms.Core.Models.PublishedContent
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "master.cshtml";
+    ViewData["Title"] = Model.Name;
+
+    DateTime NewsDate(IPublishedContent x)
+    {
+        var d = x.Value<DateTime>("date");
+        return d == default ? x.CreateDate : d;
+    }
+
+    var items = Model.Children()
+        .Where(x => x.ContentType.Alias == "newsItem")
+        .OrderByDescending(NewsDate)
+        .ToList();
+}
+@await Html.PartialAsync("~/Views/Partials/_PageHead.cshtml", Model)
+<div class="gp-wrap gp-section">
+    @if (items.Any())
+    {
+        <div class="gp-news-list">
+            @foreach (var news in items)
+            {
+                <a class="gp-news-item gp-news-link" href="@news.Url()">
+                    <time>@NewsDate(news).ToString("dd MMMM yyyy", CultureInfo.CurrentCulture)</time>
+                    @if (!string.IsNullOrWhiteSpace(news.Value<string>("category")))
+                    {
+                        <span class="gp-tag">@(news.Value<string>("category"))</span>
+                    }
+                    <h3>@news.Name</h3>
+                    <p>@(news.Value<string>("summary"))</p>
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,33 @@
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListItem>
+@{
+    var columns = Model.Content.Value<BlockListModel>("columns");
+}
+@if (columns != null && columns.Any())
+{
+    <div class="gp-wrap gp-section">
+        <div class="gp-audience">
+            @foreach (var column in columns)
+            {
+                var col = column.Content;
+                var links = col.Value<IEnumerable<Link>>("links") ?? Enumerable.Empty<Link>();
+                <div class="gp-audience-col">
+                    <div class="gp-audience-head">
+                        <i class="bi @(col.Value<string>("icon"))"></i>
+                        <div>
+                            <h2>@(col.Value<string>("title"))</h2>
+                            <p>@(col.Value<string>("description"))</p>
+                        </div>
+                    </div>
+                    <ul class="gp-linklist">
+                        @foreach (var link in links)
+                        {
+                            <li><a href="@link.Url" target="@link.Target"><span>@link.Name</span><i class="bi bi-chevron-right"></i></a></li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+}

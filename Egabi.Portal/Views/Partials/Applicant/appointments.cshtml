@@ -1,0 +1,45 @@
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+}
+
+<div class="gp-screen">
+<div class="gp-phead"><div><h1>@L("Appointments", "المواعيد")</h1><p>@L("Book time with GAHAR or manage your upcoming appointments.", "احجز موعدًا مع الهيئة أو أدر مواعيدك القادمة.")</p></div></div>
+<div class="gp-split">
+<form class="gp-panel" data-toast-ar="تم حجز الموعد يوم الأربعاء 30 سبتمبر الساعة 11:00 ص" data-toast-en="Appointment booked for Wed 30 Sep at 11:00 am">
+<h2 class="gp-h3">@L("Book an appointment", "حجز موعد")</h2>
+<div class="gp-field"><label for="ap-type">@L("Purpose", "الغرض")</label><select id="ap-type"><option>@L("Advisory meeting", "اجتماع استشاري")</option><option>@L("Hand in original documents", "تسليم مستندات أصلية")</option><option>@L("Collect a certificate", "استلام شهادة")</option></select></div>
+<p class="gp-field-label">@L("Choose a day", "اختر اليوم")</p>
+<div class="gp-days" data-pick="">
+<button class="gp-day" type="button"><small>@L("Sun", "الأحد")</small><strong>27</strong></button>
+<button class="gp-day" type="button"><small>@L("Mon", "الإثنين")</small><strong>28</strong></button>
+<button class="gp-day" type="button"><small>@L("Tue", "الثلاثاء")</small><strong>29</strong></button>
+<button class="gp-day gp-is-on" type="button"><small>@L("Wed", "الأربعاء")</small><strong>30</strong></button>
+<button class="gp-day" type="button"><small>@L("Thu", "الخميس")</small><strong>01</strong></button>
+</div>
+<p class="gp-field-label">@L("Choose a time", "اختر الوقت")</p>
+<div class="gp-slots" data-pick="">
+<button class="gp-slot" type="button">9:00</button>
+<button class="gp-slot" disabled="" type="button">9:30</button>
+<button class="gp-slot" type="button">10:00</button>
+<button class="gp-slot gp-is-on" type="button">11:00</button>
+<button class="gp-slot" disabled="" type="button">12:00</button>
+<button class="gp-slot" type="button">13:30</button>
+<button class="gp-slot" type="button">14:00</button>
+<button class="gp-slot" type="button">15:00</button>
+</div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Confirm booking", "تأكيد الحجز")</button>
+</form>
+<div class="gp-panel">
+<h2 class="gp-h3">@L("Your upcoming appointments", "مواعيدك القادمة")</h2>
+<ul class="gp-appts">
+<li><div class="gp-datebox"><span>08</span><small>@L("Oct", "أكتوبر")</small></div><div><strong>@L("Advisory meeting — self-assessment", "اجتماع استشاري — التقييم الذاتي")</strong><span class="gp-muted">@L("11:00 am · Online", "11:00 ص · عبر الإنترنت")</span></div><button class="gp-btn gp-btn--sm gp-btn--ghost" type="button">@L("Reschedule", "إعادة الجدولة")</button></li>
+<li><div class="gp-datebox"><span>12</span><small>@L("Oct", "أكتوبر")</small></div><div><strong>@L("Survey visit — Nile Valley", "زيارة تقييم — وادي النيل")</strong><span class="gp-muted">@L("Two days · On site", "يومان · بالمنشأة")</span></div></li>
+</ul>
+</div>
+</div>
+</div>
