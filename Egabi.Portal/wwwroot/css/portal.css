@@ -914,6 +914,20 @@ textarea.fbr-input { min-height: 96px; resize: vertical; }
     }
 }
 
+/* ---------- Verify a certificate (public page, NFSA N4) ---------- */
+.gp-verify { max-width: 860px; }
+.gp-verify-status { display: flex; gap: 14px; align-items: flex-start; border-radius: var(--gp-r-md); padding: 18px 20px; margin-bottom: 24px; border: 1px solid transparent; }
+.gp-verify-status > i { font-size: 30px; line-height: 1; }
+.gp-verify-status strong { display: block; font-size: 18px; color: var(--gp-ink); }
+.gp-verify-status p { margin: 4px 0 0; color: var(--gp-text); }
+.gp-verify-status--ok { background: var(--gp-ok-bg); border-color: var(--gp-ok); }
+.gp-verify-status--ok > i { color: var(--gp-ok); }
+.gp-verify-status--warn { background: var(--gp-warn-bg); border-color: var(--gp-warn); }
+.gp-verify-status--warn > i { color: var(--gp-warn); }
+.gp-verify-status--bad { background: var(--gp-bad-bg); border-color: var(--gp-bad); }
+.gp-verify-status--bad > i { color: var(--gp-bad); }
+.gp-verify-cert { margin-bottom: 24px; }
+
 /* ===================== END GAHAR PORTAL ===================== */
 /* ---------- Batch 7: correct and resubmit a returned request ---------- */
 .gp-returned {

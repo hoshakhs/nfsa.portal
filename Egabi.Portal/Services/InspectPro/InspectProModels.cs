@@ -62,7 +62,10 @@ namespace Egabi.Portal.Services.InspectPro
         List<RequiredDocumentDto> RequiredDocuments,
         List<OwnerDto> Owners,
         List<ContactDto> Contacts,
-        List<CustomFieldValue>? CustomFields);
+        List<CustomFieldValue>? CustomFields,
+        // NFSA N4: why the application is back with me, and the establishment's licence
+        string? ReturnReason = null, DateTime? ReturnedAt = null, bool IsReturned = false,
+        string? LicenceNumber = null, DateTime? LicenceValidUntil = null, string? LicenceStatus = null);
 
     /// <summary>A custom field added in the platform's Form Config, with the saved value (as text).</summary>
     public record CustomFieldValue(string FieldName, string Label, string? LabelAr, string FieldType, string? Value);
@@ -99,7 +102,7 @@ namespace Egabi.Portal.Services.InspectPro
 
     public record ServiceRequestItem(
         int Id, string Reference,
- string ServiceCode, string ServiceNameEn, string ServiceNameAr,
+        string ServiceCode, string ServiceNameEn, string ServiceNameAr,
         int FacilityId, string? FacilityName, string? FacilityNameLocal,
         string Status, string? CurrentStage, DateTime SubmittedAt);
 
@@ -114,5 +117,24 @@ namespace Egabi.Portal.Services.InspectPro
         string Status, string? CurrentStage, DateTime SubmittedAt,
         string? ReturnNote, DateTime? ReturnedAt, int ResubmissionCount,
         int FormVersion, System.Text.Json.JsonElement Schema, System.Text.Json.JsonElement Answers);
+
+    // ── Certificates (NFSA N4) ──────────────────────────────
+
+    /// <summary>One of my certificates (licence, registration…). Status: Valid | Expired | Revoked.</summary>
+    public record CertificateItem(
+        string CertificateNumber, string CertificateType, string TitleEn, string TitleAr,
+        string? HolderNameEn, string? HolderNameAr,
+        DateTime IssuedAt, DateTime? ValidUntil, string Status, string VerificationCode);
+
+    public record CertificateDetail(string LabelEn, string LabelAr, string? ValueEn, string? ValueAr);
+
+    /// <summary>Public verification of a certificate by its code (the QR code opens it).</summary>
+    public record CertificateVerification(
+        string CertificateNumber, string CertificateType, string TitleEn, string TitleAr,
+        string? HolderNameEn, string? HolderNameAr,
+        DateTime IssuedAt, DateTime? ValidUntil,
+        string Status, DateTime? RevokedAt,
+        string IssuerNameEn, string IssuerNameAr,
+        List<CertificateDetail> Details);
 }
 

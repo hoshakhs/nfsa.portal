@@ -21,6 +21,8 @@
 //   POST /portal/api/services/{code}/upload              ┘
 //   POST /portal/api/services/requests/{ref}/resubmit    correct a returned request (batch 7)
 //
+//   GET  /portal/certificates/{number}/pdf                download one of my certificates (NFSA N4)
+//
 // JSON reply shape:
 //   { ok: true,  redirect?: "...", data?: {...}, message?: "..." }
 //   { ok: false, message: "...", errors?: { field: ["..."] }, redirect?: "..." }
@@ -369,6 +371,38 @@ namespace Egabi.Portal.Controllers
             result.Ok && result.Data.ValueKind == JsonValueKind.Object
                 ? Json(result.Data)
                 : Json(new { success = false, message = result.Message ?? "Not available." });
+
+        // ════════════════════════════════════════════════════
+        // CERTIFICATES (NFSA N4)
+        // ════════════════════════════════════════════════════
+        private static readonly Regex CertificateNumber = new("^[A-Za-z0-9-]{5,40}$", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Opens the PDF of one of my certificates (a normal link on "Certificates").
+        /// The platform checks that the certificate is mine.
+        /// </summary>
+        [HttpGet("certificates/{number}/pdf")]
+        public async Task<IActionResult> CertificatePdf(string number)
+        {
+            var me = ApplicantAuth.Current(HttpContext);
+            var lang = Request.Query["lang"].ToString() == "en" ? "/en" : "";
+            if (me == null)
+                return Redirect(lang + "/account/login?returnUrl=" + Uri.EscapeDataString(lang + "/account/certificates"));
+            if (!CertificateNumber.IsMatch(number))
+                return NotFound();
+
+            var (pdf, status) = await _api.GetCertificatePdfAsync(me.Token, number);
+            if (status == 401)
+            {
+                await ApplicantAuth.SignOutAsync(HttpContext);
+                return Redirect(lang + "/account/login?returnUrl=" + Uri.EscapeDataString(lang + "/account/certificates"));
+            }
+            if (pdf == null)
+                return status == 404 ? NotFound() : StatusCode(503);
+
+            Response.Headers.CacheControl = "private, no-store";
+            return File(pdf, "application/pdf", number + ".pdf");
+        }
 
         // ════════════════════════════════════════════════════
         // HELPERS

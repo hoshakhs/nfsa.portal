@@ -1,0 +1,87 @@
+@using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
+@{
+    // Verify a certificate — public page, no sign-in (NFSA Patch N4).
+    // The QR code on every certificate opens /verify?code=XXXXXXXXXXXX.
+    // Shows whether the certificate is valid, expired or revoked, and what it covers.
+    var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+    string L(string en, string ar) => isAr ? ar : en;
+    string U(string path) => (isAr ? "" : "/en") + path;
+    string T(string? en, string? ar) => (isAr ? (string.IsNullOrWhiteSpace(ar) ? en : ar) : (string.IsNullOrWhiteSpace(en) ? ar : en)) ?? "—";
+
+    var code = new string((Context.Request.Query["code"].FirstOrDefault() ?? "").Trim().ToUpperInvariant()
+                          .Where(char.IsLetterOrDigit).ToArray());
+    if (code.Length > 20) code = code[..20];
+
+    ApiResult<CertificateVerification>? result = code.Length >= 6 ? await Api.VerifyCertificateAsync(code) : null;
+    var c = result?.Data;
+}
+
+<div class="gp-screen">
+<div class="gp-wrap gp-section gp-verify">
+<div class="gp-phead"><div><h1>@L("Verify a certificate", "التحقق من شهادة")</h1><p>@L("Scan the QR code on the certificate, or enter its verification code.", "امسح رمز QR الموجود على الشهادة، أو أدخل رمز التحقق.")</p></div></div>
+
+<form class="gp-trackbar" method="get" action="@U("/verify")" data-native>
+<div class="gp-inputicon"><i class="bi bi-qr-code-scan"></i><input name="code" type="text" value="@code" maxlength="20" placeholder="@L("Verification code", "رمز التحقق")" aria-label="@L("Verification code", "رمز التحقق")" autocomplete="off" required /></div>
+<button class="gp-btn gp-btn--primary" type="submit">@L("Verify", "تحقق")</button>
+</form>
+
+@if (code.Length > 0 && code.Length < 6)
+{
+    <div class="gp-form-error">@L("The verification code is 12 letters and digits — check it and try again.", "رمز التحقق مكون من 12 حرفًا ورقمًا — تحقق منه وحاول مرة أخرى.")</div>
+}
+else if (result != null && c == null)
+{
+    if (result.Status == 404)
+    {
+        <div class="gp-verify-status gp-verify-status--bad"><i class="bi bi-x-octagon"></i><div><strong>@L("No certificate found", "لم يتم العثور على شهادة")</strong><p>@L("No certificate was issued with this code. The document may not be genuine.", "لم تصدر أي شهادة بهذا الرمز. قد تكون الوثيقة غير صحيحة.")</p></div></div>
+    }
+    else
+    {
+        <div class="gp-form-error">@L("The certificate could not be checked right now. Please try again in a moment.", "تعذر التحقق من الشهادة حاليًا. حاول مرة أخرى بعد قليل.")</div>
+    }
+}
+else if (c != null)
+{
+    var (cls, icon, head, text) = c.Status switch
+    {
+        "Valid" => ("gp-verify-status--ok", "bi-patch-check-fill",
+                    L("Valid certificate", "شهادة سارية"),
+                    L("This certificate is genuine and valid.", "هذه الشهادة صحيحة وسارية.")),
+        "Expired" => ("gp-verify-status--warn", "bi-hourglass-bottom",
+                    L("Expired certificate", "شهادة منتهية"),
+                    L("This certificate is genuine but no longer valid.", "هذه الشهادة صحيحة لكنها لم تعد سارية.")),
+        _ => ("gp-verify-status--bad", "bi-x-octagon-fill",
+                    L("Revoked certificate", "شهادة ملغاة"),
+                    L("The issuer revoked this certificate. It must not be relied on.", "ألغت جهة الإصدار هذه الشهادة، ولا يُعتد بها."))
+    };
+
+    <div class="gp-verify-status @cls"><i class="bi @icon"></i><div><strong>@head</strong><p>@text</p></div></div>
+
+    <article class="gp-cert gp-verify-cert">
+    <div class="gp-cert-seal"><i class="bi @ApplicantUi.CertificateIcon(c.CertificateType)"></i></div>
+    <div class="gp-cert-body">
+    <span class="gp-cert-kind">@T(c.TitleEn, c.TitleAr)</span>
+    <h2>@T(c.HolderNameEn, c.HolderNameAr)</h2>
+    <dl>
+    <dt>@L("Certificate no.", "رقم الشهادة")</dt><dd class="gp-ref">@c.CertificateNumber</dd>
+    <dt>@L("Issued by", "جهة الإصدار")</dt><dd>@T(c.IssuerNameEn, c.IssuerNameAr)</dd>
+    <dt>@L("Issued", "تاريخ الإصدار")</dt><dd>@ApplicantUi.Date(c.IssuedAt, isAr)</dd>
+    <dt>@L("Valid until", "صالحة حتى")</dt><dd>@(c.ValidUntil.HasValue ? ApplicantUi.Date(c.ValidUntil, isAr) : L("No expiry", "بدون تاريخ انتهاء"))</dd>
+    @if (c.RevokedAt.HasValue)
+    {
+        <dt>@L("Revoked on", "تاريخ الإلغاء")</dt><dd>@ApplicantUi.Date(c.RevokedAt, isAr)</dd>
+    }
+    @foreach (var d in c.Details.Where(d => !string.IsNullOrWhiteSpace(d.ValueEn) || !string.IsNullOrWhiteSpace(d.ValueAr)))
+    {
+        <dt>@T(d.LabelEn, d.LabelAr)</dt><dd>@T(d.ValueEn, d.ValueAr)</dd>
+    }
+    </dl>
+    </div>
+    </article>
+}
+</div>
+</div>

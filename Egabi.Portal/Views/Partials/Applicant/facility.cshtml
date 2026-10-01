@@ -74,7 +74,10 @@ else
     var name = (isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—";
     var sector = isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn;
     var type = isAr ? f.FacilityTypeNameAr ?? f.FacilityTypeNameEn : f.FacilityTypeNameEn;
-    var returnReason = f.Stages.Where(s => s.State == "Rejected").Select(s => s.ReturnReason).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
+    // NFSA N4: the API gives the officer's latest return / rejection note directly
+    var returnReason = f.ReturnReason
+        ?? f.Stages.Where(s => s.State is "Rejected" or "Returned").Select(s => s.ReturnReason).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
+    var isReturned = ApplicantUi.IsReturned(f.ApprovalStatus, f.IsReturned);
     var missing = f.RequiredDocuments.Where(r => r.IsRequired && !r.IsUploaded).ToList();
     var submitted = f.SubmittedAt != null && !ApplicantUi.IsDraft(f.ApprovalStatus);
     var extraDocs = f.Documents.Where(d => !f.RequiredDocuments.Any(r => r.Code == d.Code)).ToList();
@@ -87,10 +90,10 @@ else
     <h1>@name</h1>
     <p>@string.Join(" · ", new[] { sector, type, f.Governorate }.Where(x => !string.IsNullOrWhiteSpace(x)))</p>
     </div>
-    <span class="@ApplicantUi.StatusPill(f.ApprovalStatus) gp-pill--lg">@ApplicantUi.StatusLabel(f.ApprovalStatus, isAr)</span>
+    <span class="@ApplicantUi.StatusPill(isReturned ? "Rejected" : f.ApprovalStatus) gp-pill--lg">@ApplicantUi.StatusLabel(isReturned ? "Rejected" : f.ApprovalStatus, isAr)</span>
     </div>
 
-    @if (ApplicantUi.IsReturned(f.ApprovalStatus))
+    @if (isReturned)
     {
         <div class="gp-next gp-next--gold"><i class="bi bi-arrow-counterclockwise"></i><div><strong>@L("Returned for completion", "أُعيدت للاستكمال")</strong><br />@Or(returnReason)<br /><span class="gp-muted">@L("Update the documents below, then submit again.", "حدّث المستندات أدناه ثم أعد التقديم.")</span></div></div>
     }
@@ -98,9 +101,22 @@ else
     {
         <div class="gp-next"><i class="bi bi-info-circle"></i><div>@L("Step 2 of 3: upload the required documents. Step 3: submit the establishment for review.", "الخطوة 2 من 3: ارفع المستندات المطلوبة. الخطوة 3: قدّم المنشأة للمراجعة.")</div></div>
     }
+    else if (ApplicantUi.IsApproved(f.ApprovalStatus) && f.LicenceNumber != null)
+    {
+        // NFSA N4: the establishment's licence (issued by the "Food Establishment Licence" service)
+        <div class="gp-next"><i class="bi bi-patch-check"></i><div>
+        <strong>@L("Food establishment licence", "رخصة تداول الغذاء")</strong> <span class="gp-ref">@f.LicenceNumber</span>
+        <span class="@ApplicantUi.CertificateStatusPill(f.LicenceStatus ?? "")">@ApplicantUi.CertificateStatusLabel(f.LicenceStatus ?? "", isAr)</span><br />
+        @(f.LicenceValidUntil.HasValue ? L("Valid until ", "سارية حتى ") + ApplicantUi.Date(f.LicenceValidUntil, isAr) : "")
+        <a class="gp-textlink" href="@U("/account/certificates")">@L("Print the licence", "طباعة الترخيص")</a>
+        </div></div>
+    }
     else if (ApplicantUi.IsApproved(f.ApprovalStatus))
     {
-        <div class="gp-next"><i class="bi bi-patch-check"></i><div>@L("Your establishment is registered.", "تم تسجيل منشأتك.")</div></div>
+        <div class="gp-next"><i class="bi bi-patch-check"></i><div>
+        @L("Your establishment is registered. Next step: request its food establishment licence — NFSA inspects the establishment, then you print the licence and display it.", "تم تسجيل منشأتك. الخطوة التالية: طلب ترخيص المنشأة الغذائية — تفتش الهيئة المنشأة ثم تطبع الترخيص وتعلقه بها.")
+        <br /><a class="gp-textlink" href="@U("/account/new-request")?code=FOOD_LICENCE&facility=@f.Id">@L("Request the licence", "طلب الترخيص")</a>
+        </div></div>
     }
 
     <div class="gp-panel">
@@ -109,18 +125,18 @@ else
     <li class="@(submitted ? "gp-is-done" : "gp-is-current")"><span>@(submitted ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("1"))</span><em>@L("Submitted", "تقديم الطلب")</em><small>@ApplicantUi.Date(f.SubmittedAt, isAr)</small></li>
     @foreach (var s in f.Stages)
     {
-        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" => "gp-is-rejected", _ => "" };
+        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" or "Returned" => "gp-is-rejected", _ => "" };
         var mark = s.State switch
         {
             "Done" => Html.Raw("<i class=\"bi bi-check-lg\"></i>"),
-            "Rejected" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
+            "Rejected" or "Returned" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
             _ => Html.Raw((s.Level + 1).ToString())
         };
         var stateText = s.State switch
         {
             "Done" => ApplicantUi.Date(s.Date, isAr),
             "Current" => L("In progress", "جارية"),
-            "Rejected" => L("Returned", "مُعادة"),
+            "Rejected" or "Returned" => L("Returned", "مُعادة"),
             _ => L("Waiting", "في الانتظار")
         };
         <li class="@cls"><span>@mark</span><em>@s.LabelEn</em><small>@stateText</small></li>

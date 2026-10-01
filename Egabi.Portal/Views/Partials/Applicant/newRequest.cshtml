@@ -20,6 +20,8 @@
 
     var me = ApplicantAuth.Current(Context)!;
     var code = Context.Request.Query["code"].ToString().Trim();
+    // NFSA N4: "?facility=12" preselects the establishment (link from the establishment page)
+    int.TryParse(Context.Request.Query["facility"].ToString(), out var preFacility);
 }
 
 @if (!string.IsNullOrEmpty(Context.Request.Query["ref"].ToString()))
@@ -100,7 +102,8 @@ else
         // Step 1: the service's details (from the Service Catalogue) → "Start request"
         var detailsData = new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData)
         {
-            ["ApplyUrl"] = U("/account/new-request") + "?code=" + Uri.EscapeDataString(detail.Data.Code) + "&start=1",
+            ["ApplyUrl"] = U("/account/new-request") + "?code=" + Uri.EscapeDataString(detail.Data.Code) + "&start=1"
+                           + (preFacility > 0 ? "&facility=" + preFacility : ""),
             ["BackUrl"] = U("/account/new-request")
         };
         @await Html.PartialAsync("~/Views/Partials/Services/_ServiceDetails.cshtml", detail.Data.Summary, detailsData)
@@ -143,8 +146,8 @@ else
             <div class="gp-choice-list" data-facility-list>
             @foreach (var f in eligible)
             {
-                <label class="gp-choice"><input type="radio" name="facilityId" value="@f.Id" checked="@(eligible.Count == 1)" />
-                <span class="gp-choice-box"><i class="bi bi-hospital"></i>
+                <label class="gp-choice"><input type="radio" name="facilityId" value="@f.Id" checked="@(eligible.Count == 1 || f.Id == preFacility)" />
+                <span class="gp-choice-box"><i class="bi bi-shop"></i>
                 <strong>@((isAr && !string.IsNullOrWhiteSpace(f.FacilityNameLocal) ? f.FacilityNameLocal : f.FacilityName) ?? "—")</strong>
                 <small>@ApplicantUi.Reference(f.Id) · @((isAr ? f.SectorNameAr ?? f.SectorNameEn : f.SectorNameEn) ?? "")</small></span></label>
             }

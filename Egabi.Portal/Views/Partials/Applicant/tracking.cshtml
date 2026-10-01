@@ -105,18 +105,18 @@ else if (notFound)
     <li class="@(submitted ? "gp-is-done" : "gp-is-current")"><span>@(submitted ? Html.Raw("<i class=\"bi bi-check-lg\"></i>") : Html.Raw("1"))</span><em>@L("Submitted", "تقديم الطلب")</em><small>@ApplicantUi.Date(f.SubmittedAt, isAr)</small></li>
     @foreach (var s in f.Stages)
     {
-        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" => "gp-is-rejected", _ => "" };
+        var cls = s.State switch { "Done" => "gp-is-done", "Current" => "gp-is-current", "Rejected" or "Returned" => "gp-is-rejected", _ => "" };
         var mark = s.State switch
         {
             "Done" => Html.Raw("<i class=\"bi bi-check-lg\"></i>"),
-            "Rejected" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
+            "Rejected" or "Returned" => Html.Raw("<i class=\"bi bi-arrow-counterclockwise\"></i>"),
             _ => Html.Raw((s.Level + 1).ToString())
         };
         var stateText = s.State switch
         {
             "Done" => ApplicantUi.Date(s.Date, isAr),
             "Current" => L("In progress", "جارية"),
-            "Rejected" => L("Returned", "مُعادة"),
+            "Rejected" or "Returned" => L("Returned", "مُعادة"),
             _ => L("Waiting", "في الانتظار")
         };
         <li class="@cls"><span>@mark</span><em>@s.LabelEn</em><small>@stateText</small></li>

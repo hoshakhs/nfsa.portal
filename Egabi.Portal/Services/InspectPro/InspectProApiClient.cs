@@ -134,6 +134,45 @@ namespace Egabi.Portal.Services.InspectPro
                 $"api/public/v1/services/{Uri.EscapeDataString(code)}/upload", token, form);
         }
 
+        // ── Certificates (NFSA N4) ─────────────────────────────
+        public Task<ApiResult<List<CertificateItem>>> GetMyCertificatesAsync(string token) =>
+            SendAsync<List<CertificateItem>>(HttpMethod.Get, "api/public/v1/certificates", token);
+
+        /// <summary>Public check by verification code — no sign-in needed.</summary>
+        public Task<ApiResult<CertificateVerification>> VerifyCertificateAsync(string code) =>
+            SendAsync<CertificateVerification>(HttpMethod.Get,
+                $"api/public/v1/certificates/verify/{Uri.EscapeDataString(code)}", null);
+
+        /// <summary>The PDF of one of my certificates (bytes), or null when not found / not mine.</summary>
+        public async Task<(byte[]? Pdf, int Status)> GetCertificatePdfAsync(string token, string number)
+        {
+            var path = $"api/public/v1/certificates/{Uri.EscapeDataString(number)}/pdf";
+            if (string.IsNullOrWhiteSpace(_options.PortalClientKey))
+            {
+                _logger.LogError("InspectProApi:PortalClientKey is not set — add it to User Secrets or appsettings.");
+                return (null, 503);
+            }
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, path);
+            req.Headers.Add("X-Portal-Key", _options.PortalClientKey);
+            req.Headers.Add("X-Correlation-Id", Guid.NewGuid().ToString("N"));
+            var ip = _ctx.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            if (!string.IsNullOrEmpty(ip)) req.Headers.Add("X-Client-IP", ip);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            try
+            {
+                using var res = await _http.SendAsync(req);
+                if (!res.IsSuccessStatusCode) return (null, (int)res.StatusCode);
+                return (await res.Content.ReadAsByteArrayAsync(), 200);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "InspectPro API unreachable: GET {Path}", path);
+                return (null, 503);
+            }
+        }
+
         // ════════════════════════════════════════════════════
         // CORE
         // ════════════════════════════════════════════════════
