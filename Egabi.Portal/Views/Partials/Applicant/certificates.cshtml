@@ -1,61 +1,69 @@
 @using System.Globalization
+@using Egabi.Portal.Services.Applicant
+@using Egabi.Portal.Services.InspectPro
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject InspectProApiClient Api
 @{
-    // Applicant screen (sample data for now; real data comes from the egabi Platform API in a later batch).
+    // Certificates & licences — real data from the egabi Platform API (NFSA Patch N4; replaces the sample).
+    // Every certificate issued to me or to one of my establishments: download the PDF to print and
+    // display it, open its public verification page, or copy the verification link.
     var isAr = CultureInfo.CurrentCulture.Name.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
     string L(string en, string ar) => isAr ? ar : en;
     string U(string path) => (isAr ? "" : "/en") + path;
+    string T(string? en, string? ar) => (isAr ? (string.IsNullOrWhiteSpace(ar) ? en : ar) : (string.IsNullOrWhiteSpace(en) ? ar : en)) ?? "—";
+
+    var me = ApplicantAuth.Current(Context)!;
+    var result = await Api.GetMyCertificatesAsync(me.Token);
+    var list = result.Data ?? new List<CertificateItem>();
+    var site = Context.Request.Scheme + "://" + Context.Request.Host;
 }
 
 <div class="gp-screen">
-<div class="gp-phead"><div><h1>@L("Certificates and decisions", "الشهادات والقرارات")</h1><p>@L("Every certificate carries a verification code that anyone can check.", "كل شهادة تحمل رمز تحقق يمكن لأي جهة التحقق منه.")</p></div></div>
-<div class="gp-certs">
-<article class="gp-cert">
-<div class="gp-cert-seal"><i class="bi bi-award-fill"></i></div>
-<div class="gp-cert-body">
-<span class="gp-cert-kind">@L("Accreditation certificate", "شهادة اعتماد")</span>
-<h2>@L("Al-Salam Primary Care Unit", "وحدة السلام للرعاية الأولية")</h2>
-<dl>
-<dt>@L("Certificate no.", "رقم الشهادة")</dt><dd class="gp-ref">GAHAR-PHC-2024-0318</dd>
-<dt>@L("Valid from", "صالحة من")</dt><dd>@L("15 Mar 2024", "15 مارس 2024")</dd>
-<dt>@L("Valid until", "صالحة حتى")</dt><dd>@L("14 Mar 2027", "14 مارس 2027")</dd>
-<dt>@L("Verification code", "رمز التحقق")</dt><dd class="gp-ref">7KQ4-2M9X</dd>
-</dl>
-</div>
-<div class="gp-cert-actions">
-<button class="gp-btn gp-btn--primary gp-btn--sm" type="button"><i class="bi bi-download"></i><span>@L("Download PDF", "تنزيل PDF")</span></button>
-<button class="gp-btn gp-btn--outline gp-btn--sm" data-toast-ar="تم نسخ رابط التحقق" data-toast-en="Verification link copied" type="button"><i class="bi bi-link-45deg"></i><span>@L("Copy verification link", "نسخ رابط التحقق")</span></button>
-</div>
-</article>
-<article class="gp-cert">
-<div class="gp-cert-seal"><i class="bi bi-person-vcard-fill"></i></div>
-<div class="gp-cert-body">
-<span class="gp-cert-kind">@L("Professional registration certificate", "شهادة تسجيل مهني")</span>
-<h2>@L("Dr. Mona Adel — Paediatrics", "د. منى عادل — طب الأطفال")</h2>
-<dl>
-<dt>@L("Registration no.", "رقم التسجيل")</dt><dd class="gp-ref">REG-2026-55012</dd>
-<dt>@L("Issued", "تاريخ الإصدار")</dt><dd>@L("18 Aug 2026", "18 أغسطس 2026")</dd>
-<dt>@L("Valid until", "صالحة حتى")</dt><dd>@L("17 Aug 2031", "17 أغسطس 2031")</dd>
-<dt>@L("Verification code", "رمز التحقق")</dt><dd class="gp-ref">P3VD-81LA</dd>
-</dl>
-</div>
-<div class="gp-cert-actions">
-<button class="gp-btn gp-btn--primary gp-btn--sm" type="button"><i class="bi bi-download"></i><span>@L("Download PDF", "تنزيل PDF")</span></button>
-<button class="gp-btn gp-btn--outline gp-btn--sm" data-toast-ar="تم نسخ رابط التحقق" data-toast-en="Verification link copied" type="button"><i class="bi bi-link-45deg"></i><span>@L("Copy verification link", "نسخ رابط التحقق")</span></button>
-</div>
-</article>
-</div>
-<div class="gp-panel gp-panel--flush">
-<h2 class="gp-h3 gp-pad">@L("Decisions", "القرارات")</h2>
-<div class="gp-table-wrap">
-<table class="gp-table">
-<thead><tr><th>@L("Decision no.", "رقم القرار")</th><th>@L("Subject", "الموضوع")</th><th>@L("Date", "التاريخ")</th><th></th></tr></thead>
-<tbody>
-<tr><td class="gp-ref">DEC-2026-1184</td><td>@L("Documents accepted for GHR-2026-004182", "قبول مستندات طلب الاعتماد GHR-2026-004182")</td><td>@L("11 Sep 2026", "11 سبتمبر 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
-<tr><td class="gp-ref">DEC-2026-0951</td><td>@L("Survey outcome — Al-Salam (corrective plan required)", "نتيجة زيارة التقييم — وحدة السلام (مطلوب خطة تصحيحية)")</td><td>@L("31 Aug 2026", "31 أغسطس 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
-<tr><td class="gp-ref">DEC-2026-0877</td><td>@L("Professional registration approved", "الموافقة على التسجيل المهني")</td><td>@L("18 Aug 2026", "18 أغسطس 2026")</td><td><button aria-label="Download" class="gp-iconbtn" type="button"><i class="bi bi-download"></i></button></td></tr>
-</tbody>
-</table>
-</div>
-</div>
+<div class="gp-phead"><div><h1>@L("Certificates and licences", "الشهادات والتراخيص")</h1><p>@L("Print your licence and display it in a clear, visible place at the establishment. Anyone can check it by scanning its QR code.", "اطبع الترخيص وعلّقه في مكان ظاهر وواضح بالمنشأة. يمكن لأي شخص التحقق منه بمسح رمز QR.")</p></div></div>
+
+@if (result.Unauthorized)
+{
+    await ApplicantAuth.SignOutAsync(Context);
+    <div class="gp-form-error">@L("Your session has ended.", "انتهت الجلسة.") <a class="gp-textlink" href="@U("/account/login")?returnUrl=@Uri.EscapeDataString(U("/account/certificates"))">@L("Sign in again", "سجّل الدخول مرة أخرى")</a></div>
+}
+else if (!result.Ok)
+{
+    <div class="gp-form-error">@L("Your certificates could not be loaded right now. Please refresh the page in a moment.", "تعذر تحميل الشهادات حاليًا. أعد تحميل الصفحة بعد قليل.")</div>
+}
+else if (list.Count == 0)
+{
+    <div class="gp-panel gp-center">
+    <h2 class="gp-h3">@L("No certificates yet", "لا توجد شهادات بعد")</h2>
+    <p class="gp-muted">@L("When NFSA grants your establishment's food licence, its certificate appears here, ready to print.", "عند منح الهيئة ترخيص منشأتك الغذائية تظهر شهادته هنا جاهزة للطباعة.")</p>
+    <a class="gp-btn gp-btn--primary" href="@U("/account/new-request")?code=FOOD_LICENCE"><i class="bi bi-patch-check"></i><span>@L("Request a food establishment licence", "طلب ترخيص منشأة غذائية")</span></a>
+    </div>
+}
+else
+{
+    <div class="gp-certs">
+    @foreach (var c in list)
+    {
+        var verifyPath = U("/verify") + "?code=" + Uri.EscapeDataString(c.VerificationCode);
+        <article class="gp-cert">
+        <div class="gp-cert-seal"><i class="bi @ApplicantUi.CertificateIcon(c.CertificateType)"></i></div>
+        <div class="gp-cert-body">
+        <span class="gp-cert-kind">@T(c.TitleEn, c.TitleAr)</span>
+        <h2>@T(c.HolderNameEn, c.HolderNameAr)</h2>
+        <dl>
+        <dt>@L("Certificate no.", "رقم الشهادة")</dt><dd class="gp-ref">@c.CertificateNumber</dd>
+        <dt>@L("Issued", "تاريخ الإصدار")</dt><dd>@ApplicantUi.Date(c.IssuedAt, isAr)</dd>
+        <dt>@L("Valid until", "صالحة حتى")</dt><dd>@(c.ValidUntil.HasValue ? ApplicantUi.Date(c.ValidUntil, isAr) : L("No expiry", "بدون تاريخ انتهاء"))</dd>
+        <dt>@L("Verification code", "رمز التحقق")</dt><dd class="gp-ref">@c.VerificationCode</dd>
+        <dt>@L("Status", "الحالة")</dt><dd><span class="@ApplicantUi.CertificateStatusPill(c.Status)">@ApplicantUi.CertificateStatusLabel(c.Status, isAr)</span></dd>
+        </dl>
+        </div>
+        <div class="gp-cert-actions">
+        <a class="gp-btn gp-btn--primary gp-btn--sm" href="/portal/certificates/@Uri.EscapeDataString(c.CertificateNumber)/pdf@(isAr ? "" : "?lang=en")" target="_blank" rel="noopener"><i class="bi bi-printer"></i><span>@L("Open PDF to print", "فتح PDF للطباعة")</span></a>
+        <a class="gp-btn gp-btn--outline gp-btn--sm" href="@verifyPath" target="_blank" rel="noopener"><i class="bi bi-qr-code-scan"></i><span>@L("Verification page", "صفحة التحقق")</span></a>
+        <button class="gp-btn gp-btn--ghost gp-btn--sm" type="button" data-copy="@(site + verifyPath)" data-toast-ar="تم نسخ رابط التحقق" data-toast-en="Verification link copied"><i class="bi bi-link-45deg"></i><span>@L("Copy verification link", "نسخ رابط التحقق")</span></button>
+        </div>
+        </article>
+    }
+    </div>
+}
 </div>

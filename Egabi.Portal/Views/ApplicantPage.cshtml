@@ -6,9 +6,9 @@
 
     // Which screen to show: Views/Partials/Applicant/{screen}.cshtml
     var screen = Model.Value<string>("screen") ?? "dashboard";
-    // Sign-in / create-account screens are shown without the sidebar.
+    // Sign-in / create-account and the public "Verify a certificate" screen are shown without the sidebar.
     // (Who may open which screen is decided in Controllers/ApplicantPageController.cs.)
-    var isAuthScreen = screen is "login" or "register";
+    var isAuthScreen = screen is "login" or "register" or "verify";
 
     // Sidebar: the "My account" page and its sub-pages marked "Show in sidebar" (editable in the CMS),
     // plus the public "Track a request" page right after "My applications".

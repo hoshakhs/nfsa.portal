@@ -128,6 +128,11 @@
             return;
         }
 
+        /* data-copy="text": copy to the clipboard (e.g. a verification link), then the toast */
+        if ((t = e.target.closest('button[data-copy]')) && navigator.clipboard) {
+            navigator.clipboard.writeText(t.getAttribute('data-copy')).catch(function () { /* ignore */ });
+        }
+
         if ((t = e.target.closest('button[data-toast-en]')) && t.type !== 'submit') { toast(t); }
     });
 

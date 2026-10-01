@@ -1,7 +1,8 @@
 // ============================================================
 // FILE: Services/Applicant/ApplicantUi.cs
 // Small display helpers shared by the applicant screens:
-// facility status labels (Arabic / English) and the pill style.
+// facility status labels (Arabic / English) and the pill style,
+// and certificate statuses / kinds (NFSA N4).
 // ============================================================
 using System.Globalization;
 
@@ -19,6 +20,9 @@ namespace Egabi.Portal.Services.Applicant
         public static bool IsReturned(string status) => status is "Rejected";
         public static bool IsApproved(string status) => status is "FinalApproved";
         public static bool IsInReview(string status) => !IsDraft(status) && !IsReturned(status) && !IsApproved(status);
+
+        /// <summary>NFSA N4: back with the applicant — rejected, or returned for completion (a draft with an officer note).</summary>
+        public static bool IsReturned(string status, bool returnedFlag) => IsReturned(status) || (IsDraft(status) && returnedFlag);
 
         /// <summary>True when the applicant has something to do (upload / submit).</summary>
         public static bool NeedsAction(string status) => IsDraft(status) || IsReturned(status);
@@ -63,6 +67,33 @@ namespace Egabi.Portal.Services.Applicant
             "Cancelled" => "gp-pill gp-pill--muted",
             _ => "gp-pill gp-pill--info"
 
+        };
+
+        // ── Certificates (NFSA N4) ───────────────────────────
+        public static string CertificateStatusLabel(string status, bool ar) => status switch
+        {
+            "Valid" => ar ? "سارية" : "Valid",
+            "Expired" => ar ? "منتهية" : "Expired",
+            "Revoked" => ar ? "ملغاة" : "Revoked",
+            _ => status
+        };
+
+        public static string CertificateStatusPill(string status) => status switch
+        {
+            "Valid" => "gp-pill gp-pill--ok",
+            "Expired" => "gp-pill gp-pill--warn",
+            "Revoked" => "gp-pill gp-pill--bad",
+            _ => "gp-pill gp-pill--muted"
+        };
+
+        public static string CertificateIcon(string type) => type switch
+        {
+            "EstablishmentLicence" => "bi-patch-check-fill",
+            "EstablishmentRegistration" => "bi-building-check",
+            "ImporterLicence" => "bi-box-seam",
+            "ConsignmentRelease" => "bi-truck",
+            "ExportHealth" => "bi-globe2",
+            _ => "bi-award-fill"
         };
 
         public static string VerificationLabel(string status, bool ar) => status switch

@@ -5,6 +5,7 @@
 //   • Signed-out visitor on a protected screen → sign-in page
 //     (and back to the same page after signing in)
 //   • Signed-in applicant on sign-in / create-account → dashboard
+//   • Public screens (verify a certificate — NFSA N4) → anyone
 // ============================================================
 using Egabi.Portal.Services.Applicant;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ namespace Egabi.Portal.Controllers
     public class ApplicantPageController : RenderController
     {
         private static readonly string[] GuestScreens = { "login", "register" };
+        private static readonly string[] PublicScreens = { "verify" };
 
         public ApplicantPageController(
             ILogger<ApplicantPageController> logger,
@@ -33,6 +35,9 @@ namespace Egabi.Portal.Controllers
             if (page == null) return NotFound();
 
             var screen = page.Value<string>("screen") ?? "dashboard";
+            if (PublicScreens.Contains(screen))
+                return CurrentTemplate(page);
+
             var isGuestScreen = GuestScreens.Contains(screen);
             var applicant = ApplicantAuth.Current(HttpContext);
 
